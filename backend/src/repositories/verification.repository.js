@@ -31,9 +31,4 @@ function markVerified({ email, codeHash, verifiedAt }) {
     return result.changes === 1;
 }
 
-function deleteVerification(email, codeHash) {
-    db.prepare('DELETE FROM email_verifications WHERE email = ? AND code_hash = ?')
-        .run(email, codeHash);
-}
-
-module.exports = { saveVerification, findByEmail, markVerified, deleteVerification };
+module.exports = { saveVerification, findByEmail, markVerified };
