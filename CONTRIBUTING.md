@@ -31,6 +31,16 @@ Front의 변경도 Pull Request로 Develop에 합칩니다.
 node_modules, .idea, .env는 올리지 않습니다. package-lock.json은 올립니다.
 친구는 변경을 받은 뒤 backend에서 npm.cmd ci를 실행합니다.
 
+## 게시글 개발용 사용자
+
+로컬에서 `cd backend` 후 `npm.cmd run seed:user`를 실행하면 게시글 개발용
+일반 사용자를 만들고 ID를 출력합니다. 다시 실행하면 같은 사용자를 조회합니다.
+테스트에서 글의 작성자 ID에는 출력된 값을 사용하세요. 회원가입·이메일 인증은
+별도로 구현하며, 이 사용자는 로그인용 비밀번호가 없습니다.
+
+서버에서 작성자를 확인할 때는 `user.repository.js`의 `findById(id)`를 쓸 수 있습니다.
+실제 게시글 API의 작성자 ID는 로그인 세션에서 가져오도록 연결합니다.
+
 ## 인증 개발 순서
 
 1. SQLite 사용. 가입·로그인 요청 필드와 테이블 생성 규칙 확정
