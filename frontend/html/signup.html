@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>회원가입 | 대N</title>
+    <script src="/js/signup.js" defer></script>
+</head>
+<body>
+    <main>
+        <h1>회원가입</h1>
+        <form id="signup-form" method="post" action="/api/auth/signup">
+            <p><label>이메일 <input name="email" type="email" autocomplete="email" required></label>
+                <button type="button" id="send-code">인증 코드 받기</button></p>
+            <p><label>인증 코드 <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6"></label>
+                <button type="button" id="verify-code">코드 확인</button></p>
+            <p><label>아이디 <input name="username" autocomplete="username" maxlength="64" required></label></p>
+            <p><label>학번 <input name="studentNumber" maxlength="32" required></label></p>
+            <p><label>비밀번호 <input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="256" required></label></p>
+            <p><label>비밀번호 확인 <input name="passwordConfirmation" type="password" autocomplete="new-password" minlength="8" maxlength="256" required></label></p>
+            <button id="signup-button" type="submit" disabled>가입하기</button>
+            <p id="signup-status" role="status"></p>
+        </form>
+        <a href="/html/login.html">로그인</a>
+    </main>
+</body>
+</html>

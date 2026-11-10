@@ -25,4 +25,12 @@ function findById(id) {
     `).get(id);
 }
 
-module.exports = { findByUsername, createUser, findById };
+function findByEmail(email) {
+    return db.prepare(`
+        SELECT id, username, password_hash, role
+        FROM users
+        WHERE email = ? COLLATE NOCASE
+    `).get(email);
+}
+
+module.exports = { findByUsername, createUser, findById, findByEmail };
