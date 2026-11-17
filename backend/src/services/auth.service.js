@@ -88,20 +88,25 @@ function verifyEmail(body) {
         verifications.markVerified({ email, codeHash, verifiedAt: now });
     }
 
-    return { status: 204 };
+    return {
+        status: 204,
+        verification: { email, codeHash, expiresAt: record.expiresAt },
+    };
 }
 
-function signupEligibility(email) {
+function signupEligibility(email, verification) {
     if (users.findByEmail(email)) return { status: 409, code: 'EMAIL_ALREADY_EXISTS' };
     const record = verifications.findByEmail(email);
     if (!record) return { status: 400, code: 'EMAIL_VERIFICATION_NOT_FOUND' };
-    if (record.verifiedAt == null || record.expiresAt <= Date.now()) {
+    if (record.verifiedAt == null || record.expiresAt <= Date.now() ||
+        verification?.email !== email || verification?.codeHash !== record.codeHash ||
+        verification?.expiresAt !== record.expiresAt) {
         return { status: 400, code: 'EMAIL_NOT_VERIFIED' };
     }
     return { record };
 }
 
-async function signup(body) {
+async function signup(body, verification) {
     const email = normalizeEmail(body.email);
     const username = typeof body.username === 'string' ? body.username.trim() : '';
     const studentNumber = typeof body.studentNumber === 'string' ? body.studentNumber.trim() : '';
@@ -113,7 +118,7 @@ async function signup(body) {
         return { status: 400, code: 'VALIDATION_ERROR' };
     }
 
-    const eligibility = signupEligibility(email);
+    const eligibility = signupEligibility(email, verification);
     if (eligibility.code) return eligibility;
     const salt = randomBytes(16);
     const key = await deriveKey(password, salt, 64, scryptOptions);
@@ -121,7 +126,7 @@ async function signup(body) {
 
     db.exec('BEGIN IMMEDIATE');
     try {
-        const current = signupEligibility(email);
+        const current = signupEligibility(email, verification);
         if (current.code) {
             db.exec('ROLLBACK');
             return current;

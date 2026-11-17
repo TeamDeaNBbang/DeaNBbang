@@ -41,12 +41,22 @@ async function issueVerification(req, res) {
     return sendResult(res, await auth.issueVerification(req.body ?? {}));
 }
 
-function verifyEmail(req, res) {
-    return sendResult(res, auth.verifyEmail(req.body ?? {}));
+async function verifyEmail(req, res) {
+    const result = auth.verifyEmail(req.body ?? {});
+    if (result.verification) {
+        req.session.emailVerification = result.verification;
+        await promisify(req.session.save.bind(req.session))();
+    }
+    return sendResult(res, result);
 }
 
 async function signup(req, res) {
-    return sendResult(res, await auth.signup(req.body ?? {}));
+    const result = await auth.signup(req.body ?? {}, req.session.emailVerification);
+    if (result.status === 201) {
+        delete req.session.emailVerification;
+        await promisify(req.session.save.bind(req.session))();
+    }
+    return sendResult(res, result);
 }
 
 module.exports = { login, logout, getSessionStatus, issueVerification, verifyEmail, signup };
