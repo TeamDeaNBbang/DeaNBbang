@@ -13,3 +13,9 @@ CREATE TABLE IF NOT EXISTS email_verifications (
     expires_at INTEGER NOT NULL,
     verified_at INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS writings (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    author_id INTEGER NOT NULL REFERENCES users(id)
+);

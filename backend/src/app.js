@@ -4,6 +4,7 @@ const path = require('node:path');
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../../frontend')));
+app.use('/api/writing', require('./routes/writing.routes'));
 
 app.get('/', (req, res) => {
   res.redirect('/html/MainPage.html');

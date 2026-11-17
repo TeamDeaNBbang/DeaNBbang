@@ -1,7 +1,7 @@
 function findAllWritings(db) {
     const query = db.prepare(`
         SELECT id,title 
-        FROM practice_writings
+        FROM writings
         `)
 
     return query.all()
