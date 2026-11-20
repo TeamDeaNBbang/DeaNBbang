@@ -37,7 +37,7 @@ const postWriting = (req, res) => {
     if (writingId === null) {
         return res.status(400).json({})
     } else {
-        res.status(200).json({writingId})
+        res.status(201).json({writingId})
     }
 }
 
