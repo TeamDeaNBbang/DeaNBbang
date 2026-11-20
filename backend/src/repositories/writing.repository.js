@@ -17,4 +17,14 @@ function findWritingById(db, writingId) {
     return query.get(writingId)
 }
 
-module.exports = {findAllWritings, findWritingById}
+const createWriting = (db, {title, author_id}) => {
+    const query = db.prepare(`
+    INSERT INTO writings (title, author_id)
+    VALUES (?,?)
+    `)
+
+    const result = query.run(title, author_id)
+    return result.lastInsertRowid
+}
+
+module.exports = {findAllWritings, findWritingById, createWriting}

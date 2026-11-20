@@ -1,4 +1,4 @@
-const {getWritings, getWriting} = require("../services/writing.service")
+const {getWritings, getWriting, addWriting} = require("../services/writing.service")
 
 function listWritings(req, res) {
     const writings = getWritings()
@@ -25,4 +25,20 @@ const getWritingDetail = (req, res) => {
     }
 }
 
-module.exports = {listWritings, getWritingDetail}
+const postWriting = (req, res) => {
+    const userId = req.session?.userId
+    if(userId === null) {
+        return res.status(401).json({
+            code: 'UNAUTHORIZED'
+        })
+    }
+
+    const writingId = addWriting({title : req.body?.title, author_id : userId})
+    if (writingId === null) {
+        return res.status(400).json({})
+    } else {
+        res.status(200).json({writingId})
+    }
+}
+
+module.exports = {listWritings, getWritingDetail, postWriting}

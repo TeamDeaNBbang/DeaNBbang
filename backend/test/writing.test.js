@@ -3,8 +3,9 @@ const {readFileSync} = require('node:fs')
 const {join} = require('node:path')
 const db = new DatabaseSync(':memory:')
 const schema = readFileSync(join(__dirname, '../db/schema.sql'), 'utf8')
+
 db.exec(schema)
-const {findAllWritings} = require('../src/repositories/writing.repository')
+const {findAllWritings, createWriting, findWritingById} = require('../src/repositories/writing.repository')
 const assert = require('node:assert/strict')
 
 db.exec(`
@@ -18,3 +19,9 @@ db.exec(`
 const writing = findAllWritings(db)
 assert.equal(writing.length, 1)
 assert.equal(writing[0].title, '휴지 공동구매')
+
+const newId = createWriting(db, {title: '생수 공동구매', author_id: 1})
+const saved = findWritingById(db, newId)
+
+assert.equal(saved.title, '생수 공동구매')
+assert.equal(saved.author_id, 1)
