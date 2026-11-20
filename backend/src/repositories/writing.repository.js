@@ -7,4 +7,14 @@ function findAllWritings(db) {
     return query.all()
 }
 
-module.exports = {findAllWritings}
+function findWritingById(db, writingId) {
+    const query = db.prepare(`
+    SELECT id, title, author_id
+    FROM writings
+    WHERE id = ?
+    `)
+
+    return query.get(writingId)
+}
+
+module.exports = {findAllWritings, findWritingById}

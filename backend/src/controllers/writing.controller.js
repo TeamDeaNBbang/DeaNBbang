@@ -1,4 +1,4 @@
-const {getWritings} = require("../services/writing.service")
+const {getWritings, getWriting} = require("../services/writing.service")
 
 function listWritings(req, res) {
     const writings = getWritings()
@@ -6,4 +6,23 @@ function listWritings(req, res) {
     res.json(writings)
 }
 
-module.exports = {listWritings}
+const getWritingDetail = (req, res) => {
+    const writingId = Number(req.params.writingId)
+    if (!Number.isInteger(writingId) || writingId < 1) {
+        return res.status(400).json({
+            success: false,
+            status: 400
+        })
+    }
+
+    const writing = getWriting(writingId)
+    if (!writing) {
+        return res.status(404).json({
+            code: 'POST_NOT_FOUND'
+        })
+    } else {
+        res.json(writing)
+    }
+}
+
+module.exports = {listWritings, getWritingDetail}
