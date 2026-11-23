@@ -26,8 +26,8 @@ const getWritingDetail = (req, res) => {
 }
 
 const postWriting = (req, res) => {
-    const userId = req.session?.userId
-    if(userId === null) {
+    const userId = req.session?.userId // 세션이 없으면 undefined 반환
+    if(userId == null) { // ==면 null과 undefined둘 다 잡음
         return res.status(401).json({
             code: 'UNAUTHORIZED'
         })
