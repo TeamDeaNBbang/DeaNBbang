@@ -12,7 +12,7 @@ function claimNext() {
             ORDER BY id LIMIT 1
         )
         RETURNING id, writing_id AS writingId, recipient, title,
-                  deleted_at AS deletedAt, attempts
+                  deleted_at AS deletedAt, deletion_reason AS reason, attempts
     `).get(now + 120000, now);
 }
 

@@ -28,7 +28,7 @@ async function sendVerificationCode(email, code) {
     });
 }
 
-async function sendDeletionNotice({ recipient, title, writingId, deletedAt }) {
+async function sendDeletionNotice({ recipient, title, writingId, deletedAt, reason }) {
     await createTransport().sendMail({
         from: process.env.SMTP_FROM,
         to: recipient,
@@ -39,6 +39,7 @@ async function sendDeletionNotice({ recipient, title, writingId, deletedAt }) {
             '작성하신 게시글이 관리자 검토 후 삭제되었습니다.',
             '게시글 번호: ' + writingId,
             '게시글 제목: ' + title,
+            '삭제 사유: ' + reason,
             '삭제 시각: ' + new Date(deletedAt).toISOString(),
             '',
             '문의가 필요하면 이 메일에 답장해 주세요.',

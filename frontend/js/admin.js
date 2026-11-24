@@ -26,10 +26,19 @@ function renderReport(report) {
     const link = textElement('a', '게시글 보기');
     link.href = '/html/detail.html?writingId=' + report.writingId;
     article.append(link, document.createTextNode(' '));
+    const reasonInput = document.createElement('textarea');
+    reasonInput.id = 'delete-reason-' + report.id;
+    reasonInput.required = true;
+    reasonInput.maxLength = 1000;
+    reasonInput.placeholder = '작성자에게 전달할 삭제 사유를 입력해 주세요.';
+    reasonInput.addEventListener('input', () => reasonInput.setCustomValidity(''));
+    const reasonLabel = textElement('label', '삭제 사유 (작성자에게 메일로 전달돼요)');
+    reasonLabel.htmlFor = reasonInput.id;
+    article.append(reasonLabel, reasonInput);
     const deleteButton = textElement('button', '게시글 삭제');
     deleteButton.type = 'button';
     deleteButton.className = 'danger';
-    deleteButton.addEventListener('click', () => deleteWriting(report));
+    deleteButton.addEventListener('click', () => deleteWriting(report, reasonInput));
     article.append(deleteButton);
     container.append(article);
 }
@@ -66,13 +75,22 @@ async function loadReports(append = false) {
     }
 }
 
-async function deleteWriting(report) {
-    if (busy || !window.confirm('이 게시글을 삭제할까요? 삭제하면 목록과 상세 화면에서 보이지 않아요.')) return;
+async function deleteWriting(report, reasonInput) {
+    if (busy) return;
+    const reason = reasonInput.value.trim();
+    reasonInput.setCustomValidity(reason ? '' : '삭제 사유를 입력해 주세요.');
+    if (!reasonInput.reportValidity()) return;
+    if (!window.confirm('입력한 사유로 게시글을 삭제하고 작성자에게 알림 메일을 보낼까요?')) return;
     setBusy(true);
     try {
-        const response = await fetch('/api/admin/writing/' + report.writingId, { method: 'DELETE' });
+        const response = await fetch('/api/admin/writing/' + report.writingId, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason }),
+        });
         if (response.status === 401) throw new Error('다시 로그인해 주세요.');
         if (response.status === 403) throw new Error('관리자 권한이 필요해요.');
+        if (response.status === 400) throw new Error('삭제 사유를 1~1,000자로 입력해 주세요.');
         if (response.status === 404) {
             await loadReports();
             statusMessage.textContent = '이미 삭제됐거나 존재하지 않는 게시글이에요.';

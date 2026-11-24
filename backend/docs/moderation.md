@@ -10,9 +10,10 @@
 - 시각은 Unix epoch 밀리초 정수입니다.
 - reports는 (writing_id, reporter_id)가 유일해서 같은 회원은 같은 글을 한 번 신고합니다.
 - 관리자 삭제는 deleted_at과 deleted_by를 채웁니다. 원문과 신고 이력은 DB에 남습니다.
+- 관리자는 삭제 시 reason을 1~1,000자로 직접 입력합니다. 사유는 writings.deletion_reason과 알림에 저장됩니다.
 - 삭제와 작성자 이메일 알림 예약은 하나의 트랜잭션으로 저장합니다.
 - npm start 또는 npm run dev로 실행하면 5초마다 예약된 메일을 처리합니다.
-- 메일에는 글 제목·번호·삭제 시각을 담습니다. SMTP 실패 시 최대 5회 재시도하며 기록은 deletion_notifications에 남습니다.
+- 메일에는 글 제목·번호·관리자가 입력한 삭제 사유·삭제 시각을 담습니다. SMTP 실패 시 최대 5회 재시도하며 기록은 deletion_notifications에 남습니다.
 - 일반 목록·상세·참가·수정에서는 반드시 deleted_at IS NULL 조건을 사용하세요.
 - 실제 author_id와 reporter_id는 요청 본문 대신 로그인 세션의 사용자를 사용하세요.
 - 가격·물건·목표 인원 등 글 작성에 필요한 필드는 게시글 담당이 확장합니다.
@@ -26,7 +27,7 @@
 | GET /api/writing/{writingId} | 200 | 삭제된 글은 404 POST_NOT_FOUND |
 | POST /api/writing/accuse/{writingId} | 201 | {reason} 입력. 로그인 필수, 중복은 409 ALREADY_REPORTED |
 | GET /api/admin/reports | 200 | {reports, nextCursor}, 삭제되지 않은 신고 글. 관리자 필수 |
-| DELETE /api/admin/writing/{writingId} | 204 | 관리자 글 삭제. 없거나 이미 삭제되면 404 POST_NOT_FOUND |
+| DELETE /api/admin/writing/{writingId} | 204 | {reason} 필수. 관리자 글 삭제. 없거나 이미 삭제되면 404 POST_NOT_FOUND |
 
 목록은 50개씩 반환합니다. nextCursor가 있으면 ?before=nextCursor로 다음 목록을 가져옵니다.
 관리자 기능은 미로그인 401 UNAUTHORIZED, 일반 사용자 403 ADMIN_ACCESS_DENIED입니다.

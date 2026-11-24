@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS writings (
     content TEXT NOT NULL DEFAULT '',
     created_at INTEGER NOT NULL,
     deleted_at INTEGER,
-    deleted_by INTEGER REFERENCES users(id)
+    deleted_by INTEGER REFERENCES users(id),
+    deletion_reason TEXT
 );
 
 CREATE TABLE IF NOT EXISTS reports (
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS deletion_notifications (
     recipient TEXT NOT NULL,
     title TEXT NOT NULL,
     deleted_at INTEGER NOT NULL,
+    deletion_reason TEXT NOT NULL DEFAULT '관리자 검토 후 삭제되었습니다.',
     attempts INTEGER NOT NULL DEFAULT 0,
     next_attempt_at INTEGER NOT NULL DEFAULT 0,
     sent_at INTEGER

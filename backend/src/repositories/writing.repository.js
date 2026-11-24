@@ -19,21 +19,21 @@ function findVisibleById(id) {
     `).get(id);
 }
 
-function deleteByAdmin(id, adminId) {
+function deleteByAdmin(id, adminId, reason) {
     db.exec('BEGIN IMMEDIATE');
     try {
         const deletedAt = Date.now();
         const result = db.prepare(`
-            UPDATE writings SET deleted_at = ?, deleted_by = ?
+            UPDATE writings SET deleted_at = ?, deleted_by = ?, deletion_reason = ?
             WHERE id = ? AND deleted_at IS NULL
-        `).run(deletedAt, adminId, id);
+        `).run(deletedAt, adminId, reason, id);
         if (result.changes === 0) {
             db.exec('ROLLBACK');
             return false;
         }
         db.prepare(`
-            INSERT INTO deletion_notifications (writing_id, recipient, title, deleted_at)
-            SELECT w.id, u.email, w.title, w.deleted_at
+            INSERT INTO deletion_notifications (writing_id, recipient, title, deleted_at, deletion_reason)
+            SELECT w.id, u.email, w.title, w.deleted_at, w.deletion_reason
             FROM writings w JOIN users u ON u.id = w.author_id
             WHERE w.id = ?
         `).run(id);

@@ -88,17 +88,25 @@ test('moderation enforces live roles and removes deleted posts from public entry
         assert.ok(!JSON.stringify(pending).includes('password'));
     });
 
+    await t.test('deletion requires a nonempty reason of at most 1000 characters', async () => {
+        for (const body of [undefined, { reason: ' ' }, { reason: 'a'.repeat(1001) }]) {
+            assert.equal((await request('/api/admin/writing/' + writingId, adminCookie, 'DELETE', body)).status, 400);
+        }
+        assert.equal(db.prepare('SELECT deleted_at FROM writings WHERE id = ?').get(writingId).deleted_at, null);
+    });
+
     await t.test('delete is atomic and hides all reports and public reads for the post', async () => {
         const before = await (await request('/api/writing')).json();
         assert.equal(before.writings.length, 1);
         const results = await Promise.all([
-            request('/api/admin/writing/' + writingId, adminCookie, 'DELETE'),
-            request('/api/admin/writing/' + writingId, adminCookie, 'DELETE'),
+            request('/api/admin/writing/' + writingId, adminCookie, 'DELETE', { reason: '학교 규정에 어긋나는 물품입니다.' }),
+            request('/api/admin/writing/' + writingId, adminCookie, 'DELETE', { reason: '학교 규정에 어긋나는 물품입니다.' }),
         ]);
         assert.deepEqual(results.map(r => r.status).sort(), [204, 404]);
-        const record = db.prepare('SELECT deleted_at, deleted_by FROM writings WHERE id = ?').get(writingId);
+        const record = db.prepare('SELECT deleted_at, deleted_by, deletion_reason FROM writings WHERE id = ?').get(writingId);
         assert.ok(record.deleted_at > 0);
         assert.equal(record.deleted_by, adminId);
+        assert.equal(record.deletion_reason, '학교 규정에 어긋나는 물품입니다.');
         assert.equal((await (await request('/api/writing')).json()).writings.length, 0);
         assert.equal((await request('/api/writing/' + writingId)).status, 404);
         assert.equal((await request('/api/writing/accuse/' + writingId, reporterCookie, 'POST', { reason: '삭제 후' })).status, 404);
@@ -108,6 +116,7 @@ test('moderation enforces live roles and removes deleted posts from public entry
         assert.equal(notice.writing_id, writingId);
         assert.equal(notice.recipient, 'author@example.test');
         assert.equal(notice.sent_at, null);
+        assert.equal(notice.deletion_reason, record.deletion_reason);
     });
 
     await t.test('failed deletion mail is retried without sending a completed notice again', async () => {
@@ -126,6 +135,7 @@ test('moderation enforces live roles and removes deleted posts from public entry
         await Promise.all([deliverPending(), deliverPending()]);
         assert.equal(deliveries.length, 1);
         assert.equal(deliveries[0].recipient, 'author@example.test');
+        assert.equal(deliveries[0].reason, '학교 규정에 어긋나는 물품입니다.');
         const sent = db.prepare('SELECT * FROM deletion_notifications').get();
         assert.equal(sent.attempts, 2);
         assert.ok(sent.sent_at);
@@ -141,7 +151,7 @@ test('moderation enforces live roles and removes deleted posts from public entry
             BEGIN SELECT RAISE(ABORT, 'simulated notification failure'); END;
         `);
         try {
-            assert.equal((await request('/api/admin/writing/' + postId, adminCookie, 'DELETE')).status, 500);
+            assert.equal((await request('/api/admin/writing/' + postId, adminCookie, 'DELETE', { reason: '삭제 사유' })).status, 500);
             assert.equal(db.prepare('SELECT deleted_at FROM writings WHERE id = ?').get(postId).deleted_at, null);
         } finally {
             db.exec('DROP TRIGGER reject_notification');

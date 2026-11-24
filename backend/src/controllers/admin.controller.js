@@ -10,7 +10,11 @@ function listReports(req, res) {
 }
 
 function deleteWriting(req, res) {
-    if (!writings.deleteByAdmin(req.params.writingId, req.user.id)) {
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!reason || reason.length > 1000) {
+        return res.status(400).json({ code: 'VALIDATION_ERROR' });
+    }
+    if (!writings.deleteByAdmin(req.params.writingId, req.user.id, reason)) {
         return res.status(404).json({ code: 'POST_NOT_FOUND' });
     }
     return res.status(204).end();
