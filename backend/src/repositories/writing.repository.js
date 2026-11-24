@@ -27,4 +27,15 @@ const createWriting = (db, {title, author_id}) => {
     return result.lastInsertRowid
 }
 
-module.exports = {findAllWritings, findWritingById, createWriting}
+const updateWritingTitle = (db, {writingId, author_id, title}) => {
+    const query = db.prepare(`
+    UPDATE writings
+    SET title = ?
+    WHERE id = ? AND author_id = ?
+    `)
+
+    const result = query.run(title, writingId, author_id)
+    return result.changes
+}
+
+module.exports = {findAllWritings, findWritingById, createWriting, updateWritingTitle}
