@@ -20,10 +20,29 @@ function findVisibleById(id) {
 }
 
 function deleteByAdmin(id, adminId) {
-    return db.prepare(`
-        UPDATE writings SET deleted_at = ?, deleted_by = ?
-        WHERE id = ? AND deleted_at IS NULL
-    `).run(Date.now(), adminId, id).changes === 1;
+    db.exec('BEGIN IMMEDIATE');
+    try {
+        const deletedAt = Date.now();
+        const result = db.prepare(`
+            UPDATE writings SET deleted_at = ?, deleted_by = ?
+            WHERE id = ? AND deleted_at IS NULL
+        `).run(deletedAt, adminId, id);
+        if (result.changes === 0) {
+            db.exec('ROLLBACK');
+            return false;
+        }
+        db.prepare(`
+            INSERT INTO deletion_notifications (writing_id, recipient, title, deleted_at)
+            SELECT w.id, u.email, w.title, w.deleted_at
+            FROM writings w JOIN users u ON u.id = w.author_id
+            WHERE w.id = ?
+        `).run(id);
+        db.exec('COMMIT');
+        return true;
+    } catch (error) {
+        db.exec('ROLLBACK');
+        throw error;
+    }
 }
 
 module.exports = { listVisible, findVisibleById, deleteByAdmin };

@@ -10,6 +10,8 @@ db.exec('PRAGMA foreign_keys = ON');
 db.exec(readFileSync(path.join(__dirname, '../db/schema.sql'), 'utf8'));
 require.cache[require.resolve('../src/config/db')] = { exports: db };
 const app = require('../src/app');
+const mail = require('../src/services/email.service');
+const { deliverPending } = require('../src/services/notification.service');
 
 test('moderation enforces live roles and removes deleted posts from public entry points', async t => {
     const server = app.listen(0, '127.0.0.1');
@@ -102,6 +104,49 @@ test('moderation enforces live roles and removes deleted posts from public entry
         assert.equal((await request('/api/writing/accuse/' + writingId, reporterCookie, 'POST', { reason: '삭제 후' })).status, 404);
         assert.equal((await (await request('/api/admin/reports', adminCookie)).json()).reports.length, 0);
         assert.equal(db.prepare('SELECT count(*) AS count FROM reports').get().count, 2);
+        const notice = db.prepare('SELECT * FROM deletion_notifications').get();
+        assert.equal(notice.writing_id, writingId);
+        assert.equal(notice.recipient, 'author@example.test');
+        assert.equal(notice.sent_at, null);
+    });
+
+    await t.test('failed deletion mail is retried without sending a completed notice again', async () => {
+        const deliveries = [];
+        mail.sendDeletionNotice = async () => { throw new Error('Simulated mail outage'); };
+        await deliverPending();
+        const failed = db.prepare('SELECT * FROM deletion_notifications').get();
+        assert.equal(failed.attempts, 1);
+        assert.equal(failed.sent_at, null);
+        assert.ok(failed.next_attempt_at > Date.now());
+        assert.ok(db.prepare('SELECT deleted_at FROM writings WHERE id = ?').get(writingId).deleted_at);
+        mail.sendDeletionNotice = async notice => { deliveries.push(notice); };
+        await deliverPending();
+        assert.equal(deliveries.length, 0);
+        db.prepare('UPDATE deletion_notifications SET next_attempt_at = 0').run();
+        await Promise.all([deliverPending(), deliverPending()]);
+        assert.equal(deliveries.length, 1);
+        assert.equal(deliveries[0].recipient, 'author@example.test');
+        const sent = db.prepare('SELECT * FROM deletion_notifications').get();
+        assert.equal(sent.attempts, 2);
+        assert.ok(sent.sent_at);
+        await deliverPending();
+        assert.equal(deliveries.length, 1);
+    });
+
+    await t.test('notification insertion failure rolls back the post deletion', async () => {
+        const postId = db.prepare('INSERT INTO writings (author_id, title, created_at) VALUES (?, ?, ?)')
+            .run(authorId, '알림 저장 실패 확인', Date.now()).lastInsertRowid;
+        db.exec(`
+            CREATE TRIGGER reject_notification BEFORE INSERT ON deletion_notifications
+            BEGIN SELECT RAISE(ABORT, 'simulated notification failure'); END;
+        `);
+        try {
+            assert.equal((await request('/api/admin/writing/' + postId, adminCookie, 'DELETE')).status, 500);
+            assert.equal(db.prepare('SELECT deleted_at FROM writings WHERE id = ?').get(postId).deleted_at, null);
+        } finally {
+            db.exec('DROP TRIGGER reject_notification');
+            db.prepare('DELETE FROM writings WHERE id = ?').run(postId);
+        }
     });
 
     await t.test('report cursor pages return each report exactly once', async () => {

@@ -10,6 +10,9 @@
 - 시각은 Unix epoch 밀리초 정수입니다.
 - reports는 (writing_id, reporter_id)가 유일해서 같은 회원은 같은 글을 한 번 신고합니다.
 - 관리자 삭제는 deleted_at과 deleted_by를 채웁니다. 원문과 신고 이력은 DB에 남습니다.
+- 삭제와 작성자 이메일 알림 예약은 하나의 트랜잭션으로 저장합니다.
+- npm start 또는 npm run dev로 실행하면 5초마다 예약된 메일을 처리합니다.
+- 메일에는 글 제목·번호·삭제 시각을 담습니다. SMTP 실패 시 최대 5회 재시도하며 기록은 deletion_notifications에 남습니다.
 - 일반 목록·상세·참가·수정에서는 반드시 deleted_at IS NULL 조건을 사용하세요.
 - 실제 author_id와 reporter_id는 요청 본문 대신 로그인 세션의 사용자를 사용하세요.
 - 가격·물건·목표 인원 등 글 작성에 필요한 필드는 게시글 담당이 확장합니다.

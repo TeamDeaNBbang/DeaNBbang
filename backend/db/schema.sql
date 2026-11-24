@@ -35,3 +35,14 @@ CREATE TABLE IF NOT EXISTS reports (
 
 CREATE INDEX IF NOT EXISTS idx_writings_visible ON writings(deleted_at, id);
 CREATE INDEX IF NOT EXISTS idx_reports_writing ON reports(writing_id);
+
+CREATE TABLE IF NOT EXISTS deletion_notifications (
+    id INTEGER PRIMARY KEY,
+    writing_id INTEGER NOT NULL UNIQUE REFERENCES writings(id),
+    recipient TEXT NOT NULL,
+    title TEXT NOT NULL,
+    deleted_at INTEGER NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at INTEGER NOT NULL DEFAULT 0,
+    sent_at INTEGER
+);
