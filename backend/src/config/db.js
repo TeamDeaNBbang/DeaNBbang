@@ -8,6 +8,7 @@ const schemaPath = path.join(__dirname, '../../db/schema.sql');
 mkdirSync(dataDir, { recursive: true });
 
 const db = new DatabaseSync(path.join(dataDir, 'daen.sqlite'));
+db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
 const schema = readFileSync(schemaPath, 'utf8');
 
 db.exec(schema);

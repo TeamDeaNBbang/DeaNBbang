@@ -1,20 +1,27 @@
 const loginLink = document.querySelector('#login-link');
 const logoutButton = document.querySelector('#logout-button');
 const sessionStatus = document.querySelector('#session-status');
+const adminLink = document.querySelector('#admin-link');
 
 function showSessionState(authenticated) {
     loginLink.hidden = authenticated;
     logoutButton.hidden = !authenticated;
+    adminLink.hidden = true;
 }
 
 async function loadSession() {
-    const response = await fetch('/api/auth/session');
+    const response = await fetch('/api/auth/me');
+    if (response.status === 401) {
+        showSessionState(false);
+        return;
+    }
     if (!response.ok) {
         throw new Error('Could not load session');
     }
 
-    const { authenticated } = await response.json();
-    showSessionState(authenticated);
+    const user = await response.json();
+    showSessionState(true);
+    adminLink.hidden = user.role !== 'ADMIN';
 }
 
 logoutButton.addEventListener('click', async () => {

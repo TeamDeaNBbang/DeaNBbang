@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>신고 관리 | 대N</title>
+    <link rel="stylesheet" href="/css/moderation.css">
+    <script src="/js/admin.js" defer></script>
+</head>
+<body>
+    <header><a href="/">대N</a><a href="/html/login.html">로그인</a></header>
+    <main>
+        <h1>신고 글 관리</h1>
+        <p>신고 사유와 내용을 확인한 뒤 게시글을 삭제할 수 있어요.</p>
+        <button id="refresh" type="button">새로고침</button>
+        <p id="status" role="status" aria-live="polite"></p>
+        <section id="reports" aria-label="신고 목록"></section>
+        <button id="more" type="button" hidden>더 보기</button>
+    </main>
+</body>
+</html>

@@ -48,7 +48,12 @@ h1 {
 }
 .line{
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
+}
+
+@media (max-width: 900px) {
+  .Onboardong { width: auto; }
 }
 h2 {
     margin: 50px;

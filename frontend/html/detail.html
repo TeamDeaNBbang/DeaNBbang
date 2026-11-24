@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>게시글 | 대N</title>
+    <link rel="stylesheet" href="/css/moderation.css">
+    <script src="/js/writing-detail.js" defer></script>
+</head>
+<body>
+    <header><a href="/">대N</a><a href="/html/login.html">로그인</a></header>
+    <main>
+        <p id="status" role="status"></p>
+        <article id="writing" hidden>
+            <h1 id="title"></h1>
+            <p id="author"></p>
+            <p id="content"></p>
+        </article>
+        <form id="report-form" hidden>
+            <h2>게시글 신고</h2>
+            <label for="reason">신고 사유</label>
+            <textarea id="reason" name="reason" maxlength="1000" required></textarea>
+            <button type="submit">신고하기</button>
+        </form>
+    </main>
+</body>
+</html>

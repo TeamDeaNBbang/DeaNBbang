@@ -11,7 +11,9 @@
     "start": "node --env-file-if-exists=.env src/server.js",
     "dev": "node --env-file-if-exists=.env --watch src/server.js",
     "test": "node --test",
-    "seed:user": "node scripts/seed-user.js"
+    "seed:user": "node scripts/seed-user.js",
+    "seed:moderation": "node scripts/seed-moderation.js",
+    "set-admin": "node scripts/set-admin.js"
   },
   "keywords": [],
   "author": "",
