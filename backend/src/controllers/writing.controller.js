@@ -1,44 +1,108 @@
-const {getWritings, getWriting, addWriting} = require("../services/writing.service")
+const { getWritings, getWriting, addWriting, updateWriting } = require('../services/writing.service');
+const { saveWritingPhoto } = require('../services/writing-photo.service');
+
+const writingErrors = {
+    UNAUTHORIZED: [401, '로그인이 필요합니다.'],
+    USER_NOT_FOUND: [404, '사용자를 찾을 수 없습니다.'],
+    POST_NOT_FOUND: [404, '글을 찾을 수 없습니다.'],
+    POST_ACCESS_DENIED: [403, '작성자만 글을 수정할 수 있습니다.'],
+    VALIDATION_ERROR: [400, '요청 값을 확인해 주세요.'],
+    PHOTO_TOO_LARGE: [413, '사진은 5MB까지 올릴 수 있습니다.']
+};
+
+function sendWritingError(res, { code, fieldErrors }) {
+    const [status, message] = writingErrors[code];
+    const body = { code, message };
+    if (fieldErrors) body.fieldErrors = fieldErrors;
+    return res.status(status).json(body);
+}
+
+function requireWritingLogin(req, res, next) {
+    if (req.session?.userId == null) {
+        return sendWritingError(res, { code: 'UNAUTHORIZED' });
+    }
+    return next();
+}
+
+function readWritingId(req, res, next) {
+    const rawId = req.params.writingId;
+    const writingId = Number(rawId);
+    if (!/^\d+$/.test(rawId) || !Number.isSafeInteger(writingId) || writingId < 1) {
+        return sendWritingError(res, {
+            code: 'VALIDATION_ERROR',
+            fieldErrors: { writingId: '글 번호는 양의 정수여야 합니다.' }
+        });
+    }
+    res.locals.writingId = writingId;
+    return next();
+}
 
 function listWritings(req, res) {
-    const writings = getWritings()
-    //res.json을 호출하는 순간 Express가 클라에 응답을 보내기 때문에 return이 필요없다.
-    res.json(writings)
+    return res.json(getWritings());
 }
 
-const getWritingDetail = (req, res) => {
-    const writingId = Number(req.params.writingId)
-    if (!Number.isInteger(writingId) || writingId < 1) {
-        return res.status(400).json({
-            success: false,
-            status: 400
-        })
-    }
-
-    const writing = getWriting(writingId)
-    if (!writing) {
-        return res.status(404).json({
-            code: 'POST_NOT_FOUND'
-        })
-    } else {
-        res.json(writing)
-    }
+function getWritingDetail(req, res) {
+    const writing = getWriting(res.locals.writingId);
+    if (!writing) return sendWritingError(res, { code: 'POST_NOT_FOUND' });
+    return res.json(writing);
 }
 
-const postWriting = (req, res) => {
-    const userId = req.session?.userId // 세션이 없으면 undefined 반환
-    if(userId == null) { // ==면 null과 undefined둘 다 잡음
-        return res.status(401).json({
-            code: 'UNAUTHORIZED'
-        })
-    }
-
-    const writingId = addWriting({title : req.body?.title, author_id : userId})
-    if (writingId === null) {
-        return res.status(400).json({})
-    } else {
-        res.status(201).json({writingId})
-    }
+function postWriting(req, res) {
+    const result = addWriting({ author_id: req.session.userId, body: req.body });
+    if (result.code) return sendWritingError(res, result);
+    return res.status(201).json({ writingId: result.writingId });
 }
 
-module.exports = {listWritings, getWritingDetail, postWriting}
+function patchWriting(req, res) {
+    const result = updateWriting({
+        writingId: res.locals.writingId,
+        author_id: req.session.userId,
+        body: req.body === undefined ? {} : req.body
+    });
+    if (result.code) return sendWritingError(res, result);
+    return res.json(result.writing);
+}
+
+async function postWritingPhoto(req, res) {
+    let form;
+    try {
+        if (Buffer.isBuffer(req.body)) {
+            form = await new Request('http://localhost', {
+                method: 'POST',
+                headers: { 'content-type': req.get('content-type') },
+                body: req.body
+            }).formData();
+        }
+    } catch (error) {
+        if (!(error instanceof TypeError)) throw error;
+    }
+
+    const photos = form?.getAll('photo');
+    if (photos?.length !== 1) {
+        return sendWritingError(res, {
+            code: 'VALIDATION_ERROR',
+            fieldErrors: { photo: 'multipart/form-data의 photo에 파일 한 개를 보내 주세요.' }
+        });
+    }
+    const result = await saveWritingPhoto(photos[0]);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(201).json({ photoUrl: result.photoUrl });
+}
+
+function writingBodyError(error, req, res, next) {
+    if (error.type === 'entity.parse.failed') {
+        return sendWritingError(res, {
+            code: 'VALIDATION_ERROR',
+            fieldErrors: { body: '올바른 JSON을 보내 주세요.' }
+        });
+    }
+    if (req.method === 'POST' && req.path === '/photo' && error.type === 'entity.too.large') {
+        return sendWritingError(res, { code: 'PHOTO_TOO_LARGE' });
+    }
+    return next(error);
+}
+
+module.exports = {
+    listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto,
+    requireWritingLogin, readWritingId, writingBodyError
+};

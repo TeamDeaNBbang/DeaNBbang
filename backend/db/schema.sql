@@ -17,5 +17,7 @@ CREATE TABLE IF NOT EXISTS email_verifications (
 CREATE TABLE IF NOT EXISTS writings (
     id INTEGER PRIMARY KEY,
     title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    photo_url TEXT NOT NULL,
     author_id INTEGER NOT NULL REFERENCES users(id)
 );

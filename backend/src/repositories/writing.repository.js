@@ -1,41 +1,34 @@
 function findAllWritings(db) {
-    const query = db.prepare(`
-        SELECT id,title 
+    return db.prepare(`
+        SELECT id, title, photo_url AS photoUrl
         FROM writings
-        `)
-
-    return query.all()
+    `).all();
 }
 
 function findWritingById(db, writingId) {
-    const query = db.prepare(`
-    SELECT id, title, author_id
-    FROM writings
-    WHERE id = ?
-    `)
-
-    return query.get(writingId)
+    return db.prepare(`
+        SELECT id, title, author_id, content, photo_url AS photoUrl
+        FROM writings
+        WHERE id = ?
+    `).get(writingId);
 }
 
-const createWriting = (db, {title, author_id}) => {
-    const query = db.prepare(`
-    INSERT INTO writings (title, author_id)
-    VALUES (?,?)
-    `)
-
-    const result = query.run(title, author_id)
-    return result.lastInsertRowid
+function createWriting(db, { title, author_id, content, photoUrl }) {
+    return db.prepare(`
+        INSERT INTO writings (title, author_id, content, photo_url)
+        VALUES (?, ?, ?, ?)
+    `).run(title, author_id, content, photoUrl).lastInsertRowid;
 }
 
-const updateWritingTitle = (db, {writingId, author_id, title}) => {
-    const query = db.prepare(`
-    UPDATE writings
-    SET title = ?
-    WHERE id = ? AND author_id = ?
-    `)
-
-    const result = query.run(title, writingId, author_id)
-    return result.changes
+function updateWritingFields(db, { writingId, author_id, title, content, photoUrl }) {
+    return db.prepare(`
+        UPDATE writings
+        SET title = COALESCE(?, title),
+            content = COALESCE(?, content),
+            photo_url = COALESCE(?, photo_url)
+        WHERE id = ? AND author_id = ?
+        RETURNING id, title, author_id, content, photo_url AS photoUrl
+    `).get(title ?? null, content ?? null, photoUrl ?? null, writingId, author_id);
 }
 
-module.exports = {findAllWritings, findWritingById, createWriting, updateWritingTitle}
+module.exports = { findAllWritings, findWritingById, createWriting, updateWritingFields };
