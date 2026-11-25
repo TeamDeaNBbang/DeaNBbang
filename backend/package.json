@@ -2,25 +2,15 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.js",
-  "private": true,
-  "engines": {
-    "node": ">=24 <25"
-  },
+  "main": "index.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env src/server.js",
-    "dev": "node --env-file-if-exists=.env --watch src/server.js",
-    "test": "node --test",
-    "seed:user": "node scripts/seed-user.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.3.0",
-    "express-rate-limit": "^8.7.4",
-    "express-session": "^1.19.0",
-    "nodemailer": "^10.4.0"
+    "express": "^5.3.0"
   }
 }
