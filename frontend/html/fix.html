@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>글 작성 페이지</title>
+    <link rel="stylesheet" href="../css/create.css" />
+  </head>
+
+  <body>
+    <header>
+      <a href="MainPage.html" class="Logo">대N</a>
+      <a href="create.html" class="Write">글쓰기</a>
+      <a href="/frontend/html/Login.html" class="Login">로그인</a>
+    </header>
+
+    <main class="main">
+      <h1>모집 글 수정</h1>
+
+      <form action="register.php">
+        <fieldset>
+          <ul id="inputlist">
+            <li>
+              <div class="input-group">
+                <label for="productImage">
+                  상품 이미지<span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="file"
+                  id="productImage"
+                  name="productImage"
+                  accept="image/*"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="title">
+                  제목 <span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  placeholder="제목을 입력해주세요"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="productName">
+                  상품명 <span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="text"
+                  id="productName"
+                  name="productName"
+                  placeholder="상품명을 입력하세요"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="purchaseAmount">
+                  총 구매 금액<span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="number"
+                  id="purchaseAmount"
+                  name="purchaseAmount"
+                  placeholder="총 구매 금액을 입력해주세요"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="recruitCount">
+                  모집 인원<span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="number"
+                  id="recruitCount"
+                  name="recruitCount"
+                  placeholder="모집인원을 입력하세요"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="content">
+                  상세 설명<span class="Asterisk"> *</span>
+                </label>
+                <textarea id="content" name="content" required></textarea>
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="tradeLocation">
+                  거래 / 수령 장소 <span class="Asterisk"> *</span>
+                </label>
+                <input
+                  type="text"
+                  id="tradeLocation"
+                  name="tradeLocation"
+                  placeholder="거래 / 수령 장소를 입력해주세요"
+                  required
+                />
+              </div>
+            </li>
+
+            <li>
+              <div class="input-group">
+                <label for="deadline">
+                  마감일<span class="Asterisk"> *</span>
+                </label>
+                <input type="date" id="deadline" name="deadline" required />
+              </div>
+            </li>
+          </ul>
+        </fieldset>
+
+        <div id="button">
+          <button type="reset" class="reset-bttn">취소</button>
+          <button type="submit" class="submit-bttn">수정하기</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

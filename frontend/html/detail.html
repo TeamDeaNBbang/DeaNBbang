@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>대N - 공동구매 상세</title>
+
+    <!-- CSS 연결 -->
+    <link rel="stylesheet" href="../css/detail.css" />
+  </head>
+
+  <body>
+    <!-- 상단 네비게이션 -->
+    <header>
+      <a href="MainPage.html" class="Logo">대N</a>
+      <a href="/frontend/html/writingPage.html" class="Write">글쓰기</a>
+      <a href="/frontend/html/Login.html" class="Login">로그인</a>
+    </header>
+
+    <!-- 공동구매 상세 -->
+    <main class="detail-container">
+      <a href="#" class="detail-back">← 목록으로</a>
+
+      <section class="detail-main">
+        <!-- 상품 이미지 -->
+        <div class="detail-gallery">
+          <div class="detail-main-image">
+            <img
+              id="mainImage"
+              src="../image/icemaker.jpg"
+              alt="상품 이미지"
+            />
+          </div>
+        </div>
+
+        <!-- 공동구매 정보 -->
+        <div class="detail-info">
+          <span class="detail-status">모집 중</span>
+
+          <h1>닭가슴살 공동구매해요!</h1>
+
+          <div class="detail-author">
+            <div class="detail-avatar">👤</div>
+            <strong>박준성</strong>
+            <span>2026. 10. 20 14:32</span>
+          </div>
+
+          <p class="detail-description">
+            하림 닭가슴살 100g 20팩 대용량이에요.<br />
+            혼자 사기엔 양이 많아서 같이 구매할 분 구합니다!<br />
+            유통기한도 넉넉해서 학교에서 나눠 가져가면 좋아요.<br />
+            운동하시는 분들, 식단하시는 분들 모두 환영합니다! 🏃
+          </p>
+
+          <!-- 금액 및 인원 -->
+          <div class="detail-stats">
+            <div class="detail-stat">
+              <span>♙</span>
+              <p>총 구매 금액</p>
+              <strong>40,000원</strong>
+            </div>
+
+            <div class="detail-stat">
+              <span>♙</span>
+              <p>목표 인원</p>
+              <strong>4명</strong>
+              <small>(작성자 포함)</small>
+            </div>
+
+            <div class="detail-stat">
+              <span>♧</span>
+              <p>현재 인원</p>
+              <strong>2명</strong>
+            </div>
+
+            <div class="detail-stat highlight">
+              <span>₩</span>
+              <p>1인당 예상 금액</p>
+              <strong>10,000원</strong>
+            </div>
+          </div>
+
+          <button class="detail-join-btn">👥 참여하기</button>
+
+          <p class="detail-notice">
+            ● 1인당 예상 금액은 목표 인원이 모두 참여했을 때의 금액입니다.<br />
+            실제 금액은 참여 인원에 따라 변동될 수 있어요.
+          </p>
+        </div>
+      </section>
+
+      <div class="detail-actions">
+        <button class="detail-report">⚑ 신고하기</button>
+        <div>
+          <button class="detail-edit">✎ 수정하기</button>
+          <button class="detail-delete">▣ 삭제하기</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- JS 연결 -->
+    <script src="../js/detail.js"></script>
+  </body>
+</html>

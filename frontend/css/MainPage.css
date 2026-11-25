@@ -1,78 +1,25 @@
-@font-face {
-    font-family: 'GyeonggiMillenniumTitle';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-3@1.0/Title_Light.woff') format('woff');
-    font-weight: 300;
-    font-display: swap;
-}
-body {
-  margin: 0;
-  background: #F7FFE5;
-  color: #222;
-  font-family: 'GMarketSans';
-}
-header {
-  padding: 20px;
-  background: #fcfff8;
-  font-weight: bold;
-  border-bottom: 1px solid #5C7057 ;
-}
-.Logo {
-  color: #A0C49D;
-  font-size: 22px;
-  font-weight: bold;
-  text-decoration: none;
-}
-.Write {
-  float: right;
-  color: #A0C49D;
-  text-decoration: none;
-}
-main {
-  max-width: 1000px;
-  margin: auto;
-  padding: 25px;
-}
-.Onboardong {
-  padding: 25px;
-  width: 800px;
-  background: #E1ECC8;
-  border: 1px solid #5C7057 ;
-  border-radius: 10px;
-  margin:auto;
-}
-.Onboardong h4{
-  font-family: 'GyeonggiMillenniumTitle';
-}
-h1 {
-  margin-top: 0; 
-}
-.line{
-  display: flex;
-  gap: 15px;
-}
-h2 {
-    margin: 50px;
-}
-article {
-  margin: 5px;
-  width: 300px;
-  padding: 18px;
-  border-radius: 5px;
-  background: #E1ECC8;
-  border: 1px solid #5C7057;
-  font-family: 'GyeonggiMillenniumTitle';
-}
-article h3 {
-  margin-top: 0;
-}
-.ArticleImage
-{
-  width:100%;
-  border-radius: 10px;
-  border: 1px solid #5C7057;
-}
-.ArticleExplain
-{
-  color: #093805;
-  text-decoration: none;
-}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+
+*{box-sizing:border-box}
+body{margin:0;background:#f7fff2;color:#252b35;font-family:'Noto Sans KR',Arial,sans-serif}
+header{min-height:68px;padding:14px max(20px,calc((100% - 1120px)/2));background:#fff;border-bottom:1px solid #e5eee1;display:flex;align-items:center;gap:24px}
+.Logo{margin-right:auto;color:#286b36;font-size:22px;font-weight:800;text-decoration:none}
+.Write{color:#477b50;font-size:14px;font-weight:600;text-decoration:none}
+.Login{min-width:76px;padding:9px 14px;border:1px solid #5b9564;border-radius:9px;background:#639b6d;color:#fff;text-align:center;text-decoration:none;font-size:13px}
+main{max-width:1160px;margin:30px auto 60px;padding:0 24px}
+.Onboardong{padding:30px 36px;background:#f0f8e7;border:1px solid #e2ecd9;border-radius:12px;margin:0 auto 32px}
+.Onboardong h1{margin:0 0 8px;color:#25372a;font-size:30px;letter-spacing:-.8px}
+.Onboardong h4{margin:0;color:#727f72;font-size:14px;font-weight:400}
+main>h2{margin:0 0 18px;color:#252b35;font-size:21px;letter-spacing:-.4px}
+.Recruitment_Post{display:flex;flex-direction:column;gap:16px}
+.line{display:flex;gap:16px}
+article{flex:1;min-width:0;padding:14px;background:#fff;border:1px solid #e5eee1;border-radius:12px;transition:box-shadow .18s,transform .18s}
+article:hover{transform:translateY(-2px);box-shadow:0 8px 20px #30452412}
+.ArticleA{display:block;color:#252b35;text-decoration:none}
+.ArticleImage{display:block;width:100%;height:170px;object-fit:cover;border:1px solid #e5eee1;border-radius:9px;margin-bottom:13px}
+.ArticleExplain{padding:2px 3px}
+.ArticleExplain h3{margin:0 0 8px;color:#2b3a2d;font-size:16px}
+.ArticleExplain p{margin:5px 0;color:#727b83;font-size:12px;line-height:1.6}
+.ArticleExplain p:last-child{color:#3d7045;font-weight:700}
+@media(max-width:760px){main{margin-top:20px;padding:0 16px}.line{flex-wrap:wrap}.line article{flex:1 1 calc(50% - 8px)}.Onboardong{padding:24px}.Onboardong h1{font-size:25px}}
+@media(max-width:520px){header{min-height:60px;padding:12px 14px;gap:12px}.Logo{font-size:19px}.Write,.Login{font-size:12px}.Login{min-width:auto;padding:8px 10px}main{padding:0 13px}.Onboardong{padding:21px 18px}.Onboardong h1{font-size:22px}.Onboardong h4{font-size:12px}main>h2{font-size:18px}.line{display:block}.line article{margin-bottom:12px}.ArticleImage{height:190px}}
