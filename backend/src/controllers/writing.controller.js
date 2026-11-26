@@ -1,6 +1,6 @@
 const {
     getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting,
-    getMyWritings
+    getMyWritings, closeWriting
 } = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
 
@@ -8,7 +8,7 @@ const writingErrors = {
     UNAUTHORIZED: [401, '로그인이 필요합니다.'],
     USER_NOT_FOUND: [404, '사용자를 찾을 수 없습니다.'],
     POST_NOT_FOUND: [404, '글을 찾을 수 없습니다.'],
-    POST_ACCESS_DENIED: [403, '작성자만 글을 수정하거나 삭제할 수 있습니다.'],
+    POST_ACCESS_DENIED: [403, '작성자만 글을 수정·삭제하거나 모집을 마감할 수 있습니다.'],
     VALIDATION_ERROR: [400, '요청 값을 확인해 주세요.'],
     PHOTO_TOO_LARGE: [413, '사진은 5MB까지 올릴 수 있습니다.'],
     ALREADY_JOINED: [409, '이미 참가한 공동구매입니다.'],
@@ -50,9 +50,9 @@ function listWritings(req, res) {
 }
 
 function getWritingDetail(req, res) {
-    const writing = getWriting(res.locals.writingId);
+    const writing = getWriting(res.locals.writingId, req.session?.userId);
     if (!writing) return sendWritingError(res, { code: 'POST_NOT_FOUND' });
-    return res.json(writing);
+    return res.set('Cache-Control', 'private, no-store').json(writing);
 }
 
 function postWriting(req, res) {
@@ -73,6 +73,12 @@ function patchWriting(req, res) {
 
 function deleteWritingByOwner(req, res) {
     const result = deleteWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(204).end();
+}
+
+function postWritingClose(req, res) {
+    const result = closeWriting(res.locals.writingId, req.session.userId);
     if (result.code) return sendWritingError(res, result);
     return res.status(204).end();
 }
@@ -140,5 +146,6 @@ function writingBodyError(error, req, res, next) {
 
 module.exports = {
     listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
-    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport, getMyWritingList
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport, getMyWritingList,
+    postWritingClose
 };

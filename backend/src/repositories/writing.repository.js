@@ -3,7 +3,7 @@ const { runInTransaction } = require('../../db/transaction');
 const detailColumns = `
     id, title, author_id, content, photo_url AS photoUrl,
     product_name AS productName, product_url AS productUrl, total_price AS totalPrice,
-    target_participant_count AS targetParticipantCount, recruitment_ends_at AS recruitmentEndsAt,
+    target_participant_count AS targetCount, recruitment_status AS recruitmentStatus,
     (SELECT COUNT(*) FROM writing_participants p WHERE p.writing_id = writings.id) AS participantCount
 `;
 
@@ -24,19 +24,19 @@ function findWritingById(db, writingId) {
 
 function createWriting(db, {
     title, author_id, content, photoUrl, productName, productUrl,
-    totalPrice, targetParticipantCount, recruitmentEndsAt = null
+    totalPrice, targetCount
 }) {
     return runInTransaction(db, () => {
+        const createdAt = Date.now();
         const { lastInsertRowid } = db.prepare(`
             INSERT INTO writings (
                 title, author_id, content, photo_url, product_name, product_url,
-                total_price, target_participant_count, recruitment_ends_at, created_at
+                total_price, target_participant_count, created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(title, author_id, content, photoUrl, productName, productUrl,
-            totalPrice, targetParticipantCount, recruitmentEndsAt, Date.now());
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(title, author_id, content, photoUrl, productName, productUrl, totalPrice, targetCount, createdAt);
 
-        addParticipant(db, lastInsertRowid, author_id);
+        addParticipant(db, lastInsertRowid, author_id, createdAt);
         return lastInsertRowid;
     });
 }
@@ -52,6 +52,11 @@ function updateWritingFields(db, { writingId, author_id, title, content, photoUr
     `).get(title ?? null, content ?? null, photoUrl ?? null, writingId, author_id);
 }
 
+function markRecruitmentClosed(db, writingId) {
+    db.prepare("UPDATE writings SET recruitment_status = 'CLOSED' WHERE id = ?")
+        .run(writingId);
+}
+
 function markWritingDeleted(db, writingId, userId) {
     return db.prepare(`
         UPDATE writings SET deleted_at = ?, deleted_by = ?
@@ -65,9 +70,9 @@ function hasParticipant(db, writingId, userId) {
     `).get(writingId, userId));
 }
 
-function addParticipant(db, writingId, userId) {
-    db.prepare('INSERT INTO writing_participants (writing_id, user_id) VALUES (?, ?)')
-        .run(writingId, userId);
+function addParticipant(db, writingId, userId, joinedAt = Date.now()) {
+    db.prepare('INSERT INTO writing_participants (writing_id, user_id, joined_at) VALUES (?, ?, ?)')
+        .run(writingId, userId, joinedAt);
 }
 
 function removeParticipant(db, writingId, userId) {
@@ -96,6 +101,6 @@ function findJoinedByUser(db, userId) {
 
 module.exports = {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
-    hasParticipant, addParticipant, removeParticipant, markWritingDeleted,
+    hasParticipant, addParticipant, removeParticipant, markWritingDeleted, markRecruitmentClosed,
     findWrittenByUser, findJoinedByUser
 };

@@ -12,8 +12,8 @@ const png = Buffer.from(
 );
 const validFields = {
     title: 'Group order', content: 'Order details', photoUrl: '/images/photo.png',
-    productName: 'Water', productUrl: 'https://example.test/water', totalPrice: 12000,
-    targetParticipantCount: 2
+    productName: 'Water', productUrl: 'https://example.test/water', totalPrice: 10001,
+    targetCount: 2
 };
 
 function seedUsers(db) {
@@ -47,16 +47,23 @@ test('database initialization preserves older posts and can run again', t => {
         INSERT INTO users (id, email, username, student_number, password_hash)
         VALUES (1, 'author@example.test', 'author', '001', 'test-hash');
         INSERT INTO writings (id, title, author_id) VALUES (3, 'Older post', 1);
+        CREATE TABLE writing_participants (
+            writing_id INTEGER NOT NULL REFERENCES writings(id),
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            PRIMARY KEY (writing_id, user_id)
+        );
+        INSERT INTO writing_participants (writing_id, user_id) VALUES (3, 1);
     `);
 
     initializeDatabase(db);
     initializeDatabase(db);
     assert.deepEqual({ ...findWritingById(db, 3) }, {
         id: 3, title: 'Older post', author_id: 1, content: null, photoUrl: null,
-        productName: null, productUrl: null, totalPrice: null, targetParticipantCount: null,
-        recruitmentEndsAt: null, participantCount: 1
+        productName: null, productUrl: null, totalPrice: null, targetCount: null,
+        recruitmentStatus: 'OPEN', participantCount: 1
     });
 
+    assert.ok(Number.isSafeInteger(db.prepare('SELECT joined_at FROM writing_participants WHERE writing_id = 3').get().joined_at));
     const id = createWriting(db, { ...validFields, author_id: 1 });
     assert.deepEqual({ ...findAllWritings(db).find(row => row.id === id) }, {
         id, title: validFields.title, photoUrl: validFields.photoUrl
@@ -150,13 +157,25 @@ test('writing API requires title, content and photo on creation and supports par
     }
     assert.deepEqual((await request('GET', '/writing')).body, []);
 
-    const created = await request('POST', '/writing', { ...validFields, photoUrl, author_id: 2 }, author);
+    const invalidPurchase = await request('POST', '/writing', { ...validFields, totalPrice: '10001', targetCount: 1 }, author);
+    assert.equal(invalidPurchase.status, 400);
+    assert.deepEqual(Object.keys(invalidPurchase.body.fieldErrors).sort(), ['targetCount', 'totalPrice']);
+
+    const created = await request('POST', '/writing', {
+        ...validFields, photoUrl, author_id: 2, participantCount: 7, recruitmentStatus: 'CLOSED'
+    }, author);
     assert.equal(created.status, 201);
     const id = created.body.writingId;
     const endpoint = '/writing/' + id;
-    const expected = { id, ...validFields, photoUrl, author_id: 1, recruitmentEndsAt: null, participantCount: 1 };
+    const expected = {
+        id, ...validFields, photoUrl, author_id: 1, recruitmentStatus: 'OPEN', participantCount: 1,
+        pricePerPerson: 10001, expectedPricePerPerson: 5001, isJoined: false
+    };
+    const joinedAt = db.prepare('SELECT joined_at FROM writing_participants WHERE writing_id = ? AND user_id = 1').get(id).joined_at;
+    assert.ok(Number.isSafeInteger(joinedAt));
     assert.deepEqual((await request('GET', '/writing')).body, [{ id, title: validFields.title, photoUrl }]);
     assert.deepEqual((await request('GET', endpoint)).body, expected);
+    assert.equal((await request('GET', endpoint, undefined, author)).body.isJoined, true);
 
     const withoutLogin = await request('PATCH', endpoint, { title: 'Denied' });
     assert.equal(withoutLogin.status, 401);
@@ -176,11 +195,11 @@ test('writing API requires title, content and photo on creation and supports par
     const content = 'Edited body';
     const edited = await request('PATCH', endpoint, { content }, author);
     assert.equal(edited.status, 200);
-    assert.deepEqual(edited.body, { ...expected, content });
+    assert.deepEqual(edited.body, { ...expected, content, isJoined: true });
     const replacement = '/images/replacement.png';
     const changedPhoto = await request('PATCH', endpoint, { photoUrl: replacement }, author);
     assert.equal(changedPhoto.status, 200);
-    assert.deepEqual(changedPhoto.body, { ...expected, content, photoUrl: replacement });
+    assert.deepEqual(changedPhoto.body, { ...expected, content, photoUrl: replacement, isJoined: true });
     assert.deepEqual((await request('GET', '/writing')).body, [{ id, title: validFields.title, photoUrl: replacement }]);
 
     const third = await login('third@example.test');
@@ -200,6 +219,10 @@ test('writing API requires title, content and photo on creation and supports par
         writingId: id, participantCount: 2, joined: true
     });
     assert.equal(competing.find(result => result.status === 409).body.code, 'CAPACITY_EXCEEDED');
+    const full = (await request('GET', endpoint, undefined, winner)).body;
+    assert.equal(full.recruitmentStatus, 'OPEN');
+    assert.equal(full.pricePerPerson, 5001);
+    assert.equal(full.isJoined, true);
 
     const listItem = { id, title: validFields.title, photoUrl: replacement };
     assert.equal((await request('GET', '/writing/me')).status, 401);
@@ -215,9 +238,21 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal((await request('POST', '/writing/leave', { writingId: id }, winner)).status, 204);
     assert.equal((await request('GET', endpoint)).body.participantCount, 1);
 
-    db.prepare('UPDATE writings SET recruitment_ends_at = ? WHERE id = ?').run(Date.now() - 1, id);
+    assert.equal((await request('GET', endpoint, undefined, winner)).body.isJoined, false);
+    assert.equal((await request('POST', '/writing/close', { writingId: id })).status, 401);
+    assert.equal((await request('POST', '/writing/close', { writingId: id }, other)).status, 403);
+    assert.equal((await request('POST', '/writing/close', { writingId: 0 }, author)).status, 400);
+    assert.equal((await request('POST', '/writing/close', { writingId: 999 }, author)).status, 404);
+    assert.equal((await request('POST', '/writing/close', { writingId: id }, author)).status, 204);
+    assert.equal((await request('POST', '/writing/close', { writingId: id }, author)).status, 204);
+    const closed = (await request('GET', endpoint)).body;
+    assert.equal(closed.recruitmentStatus, 'CLOSED');
+    assert.equal(closed.participantCount, 1);
+    assert.equal(closed.pricePerPerson, 10001);
+    assert.equal((await request('POST', '/writing/join', { writingId: id }, author)).body.code, 'RECRUITMENT_CLOSED');
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
     assert.equal((await request('POST', '/writing/leave', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
+    assert.equal((await request('POST', '/writing/leave', { writingId: id }, author)).body.code, 'OWNER_CANNOT_LEAVE');
 
     const reportEndpoint = '/writing/accuse/' + id;
     assert.equal((await request('POST', reportEndpoint, { reason: 'Check this post' })).status, 401);
@@ -234,6 +269,7 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal((await request('DELETE', endpoint, undefined, author)).status, 204);
     assert.equal((await request('DELETE', endpoint, undefined, author)).status, 404);
     assert.equal((await request('GET', endpoint)).status, 404);
+    assert.equal((await request('POST', '/writing/close', { writingId: id }, author)).status, 404);
     assert.deepEqual((await request('GET', '/writing')).body, []);
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).status, 404);
     assert.equal(db.prepare('SELECT deleted_by FROM writings WHERE id = ?').get(id).deleted_by, 1);
