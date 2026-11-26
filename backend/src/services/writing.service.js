@@ -5,7 +5,7 @@ const { createReport } = require('../repositories/report.repository');
 const {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
     hasParticipant, addParticipant, removeParticipant, markWritingDeleted, markRecruitmentClosed,
-    findWrittenByUser, findJoinedByUser
+    findWrittenByUser, findJoinedByUser, findMainWritings, countVisibleWritings
 } = require('../repositories/writing.repository');
 
 const editableFields = {
@@ -188,6 +188,19 @@ function reportWriting(writingId, reporterId, body) {
     return { code: 'ALREADY_REPORTED' };
 }
 
+function getMainWritings(page, size) {
+    const offset = page * size;
+    const items = findMainWritings(db, { size, offset }).map(withEstimatedPrices);
+    const totalElements = countVisibleWritings(db);
+    return { items, page, size, totalElements, hasNext: offset + items.length < totalElements };
+}
+
+function getMyPage(userId) {
+    const user = findUserById(userId);
+    if (!user) return { code: 'UNAUTHORIZED' };
+    return { user, ...getMyWritings(userId) };
+}
+
 function getMyWritings(userId) {
     return {
         written: findWrittenByUser(db, userId),
@@ -197,5 +210,5 @@ function getMyWritings(userId) {
 
 module.exports = {
     getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting,
-    getMyWritings, closeWriting
+    getMyWritings, closeWriting, getMainWritings, getMyPage
 };

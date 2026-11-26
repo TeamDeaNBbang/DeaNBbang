@@ -14,6 +14,22 @@ function findAllWritings(db) {
     `).all();
 }
 
+function findMainWritings(db, { size, offset }) {
+    return db.prepare(`
+        SELECT id, title, photo_url AS photoUrl, created_at AS createdAt,
+               total_price AS totalPrice, target_participant_count AS targetCount,
+               recruitment_status AS recruitmentStatus,
+               (SELECT COUNT(*) FROM writing_participants p WHERE p.writing_id = writings.id) AS participantCount
+        FROM writings WHERE deleted_at IS NULL
+        ORDER BY created_at DESC, id DESC
+        LIMIT ? OFFSET ?
+    `).all(size, offset);
+}
+
+function countVisibleWritings(db) {
+    return db.prepare('SELECT COUNT(*) AS count FROM writings WHERE deleted_at IS NULL').get().count;
+}
+
 function findWritingById(db, writingId) {
     return db.prepare(`
         SELECT ${detailColumns}
@@ -102,5 +118,5 @@ function findJoinedByUser(db, userId) {
 module.exports = {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
     hasParticipant, addParticipant, removeParticipant, markWritingDeleted, markRecruitmentClosed,
-    findWrittenByUser, findJoinedByUser
+    findWrittenByUser, findJoinedByUser, findMainWritings, countVisibleWritings
 };
