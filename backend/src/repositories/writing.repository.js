@@ -80,6 +80,24 @@ function markWritingDeleted(db, writingId, userId) {
     `).run(Date.now(), userId, writingId, userId).changes;
 }
 
+function deleteByAdmin(db, writingId, adminId, reason) {
+    return runInTransaction(db, () => {
+        const result = db.prepare(`
+            UPDATE writings SET deleted_at = ?, deleted_by = ?, deletion_reason = ?
+            WHERE id = ? AND deleted_at IS NULL
+        `).run(Date.now(), adminId, reason, writingId);
+        if (!result.changes) return false;
+
+        db.prepare(`
+            INSERT INTO deletion_notifications (writing_id, recipient, title, deleted_at, deletion_reason)
+            SELECT w.id, u.email, w.title, w.deleted_at, w.deletion_reason
+            FROM writings w JOIN users u ON u.id = w.author_id
+            WHERE w.id = ?
+        `).run(writingId);
+        return true;
+    });
+}
+
 function hasParticipant(db, writingId, userId) {
     return Boolean(db.prepare(`
         SELECT 1 FROM writing_participants WHERE writing_id = ? AND user_id = ?
@@ -118,5 +136,5 @@ function findJoinedByUser(db, userId) {
 module.exports = {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
     hasParticipant, addParticipant, removeParticipant, markWritingDeleted, markRecruitmentClosed,
-    findWrittenByUser, findJoinedByUser, findMainWritings, countVisibleWritings
+    findWrittenByUser, findJoinedByUser, findMainWritings, countVisibleWritings, deleteByAdmin
 };

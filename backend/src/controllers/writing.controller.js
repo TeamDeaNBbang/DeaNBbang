@@ -3,6 +3,7 @@ const {
     getMyWritings, closeWriting, getMainWritings, getMyPage
 } = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
+const { readPagination } = require('../middleware/pagination');
 
 const writingErrors = {
     UNAUTHORIZED: [401, '로그인이 필요합니다.'],
@@ -95,21 +96,8 @@ function postWritingLeave(req, res) {
     return res.status(204).end();
 }
 
-function readPageNumber(value, defaultValue) {
-    if (value === undefined) return defaultValue;
-    if (typeof value !== 'string' || !/^\d+$/.test(value)) return NaN;
-    return Number(value);
-}
-
 function listMainWritings(req, res) {
-    const page = readPageNumber(req.query.page, 0);
-    const size = readPageNumber(req.query.size, 20);
-    const fieldErrors = {};
-    if (!Number.isSafeInteger(page) || page < 0) fieldErrors.page = '페이지는 0 이상의 정수여야 합니다.';
-    if (!Number.isInteger(size) || size < 1 || size > 100) fieldErrors.size = '페이지 크기는 1~100 사이여야 합니다.';
-    if (!fieldErrors.page && !fieldErrors.size && !Number.isSafeInteger(page * size)) {
-        fieldErrors.page = '페이지 번호가 너무 큽니다.';
-    }
+    const { page, size, fieldErrors } = readPagination(req.query);
     if (Object.keys(fieldErrors).length) {
         return sendWritingError(res, { code: 'VALIDATION_ERROR', fieldErrors });
     }
