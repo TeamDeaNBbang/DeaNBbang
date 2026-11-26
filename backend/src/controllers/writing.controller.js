@@ -1,5 +1,5 @@
 const {
-    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting
 } = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
 
@@ -7,7 +7,7 @@ const writingErrors = {
     UNAUTHORIZED: [401, '로그인이 필요합니다.'],
     USER_NOT_FOUND: [404, '사용자를 찾을 수 없습니다.'],
     POST_NOT_FOUND: [404, '글을 찾을 수 없습니다.'],
-    POST_ACCESS_DENIED: [403, '작성자만 글을 수정할 수 있습니다.'],
+    POST_ACCESS_DENIED: [403, '작성자만 글을 수정하거나 삭제할 수 있습니다.'],
     VALIDATION_ERROR: [400, '요청 값을 확인해 주세요.'],
     PHOTO_TOO_LARGE: [413, '사진은 5MB까지 올릴 수 있습니다.'],
     ALREADY_JOINED: [409, '이미 참가한 공동구매입니다.'],
@@ -69,6 +69,12 @@ function patchWriting(req, res) {
     return res.json(result.writing);
 }
 
+function deleteWritingByOwner(req, res) {
+    const result = deleteWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(204).end();
+}
+
 function postWritingJoin(req, res) {
     const result = joinWriting(res.locals.writingId, req.session.userId);
     if (result.code) return sendWritingError(res, result);
@@ -122,5 +128,5 @@ function writingBodyError(error, req, res, next) {
 
 module.exports = {
     listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
-    requireWritingLogin, readWritingId, writingBodyError
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner
 };

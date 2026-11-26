@@ -209,4 +209,13 @@ test('writing API requires title, content and photo on creation and supports par
     db.prepare('UPDATE writings SET recruitment_ends_at = ? WHERE id = ?').run(Date.now() - 1, id);
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
     assert.equal((await request('POST', '/writing/leave', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
+
+    assert.equal((await request('DELETE', endpoint)).status, 401);
+    assert.equal((await request('DELETE', endpoint, undefined, other)).status, 403);
+    assert.equal((await request('DELETE', endpoint, undefined, author)).status, 204);
+    assert.equal((await request('DELETE', endpoint, undefined, author)).status, 404);
+    assert.equal((await request('GET', endpoint)).status, 404);
+    assert.deepEqual((await request('GET', '/writing')).body, []);
+    assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).status, 404);
+    assert.equal(db.prepare('SELECT deleted_by FROM writings WHERE id = ?').get(id).deleted_by, 1);
 });

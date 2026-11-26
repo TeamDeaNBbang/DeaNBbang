@@ -35,6 +35,13 @@ function initializeDatabase(db) {
             db.exec('ALTER TABLE writings ADD COLUMN created_at INTEGER');
         }
 
+        if (!columns.has('deleted_at')) {
+            db.exec('ALTER TABLE writings ADD COLUMN deleted_at INTEGER');
+        }
+        if (!columns.has('deleted_by')) {
+            db.exec('ALTER TABLE writings ADD COLUMN deleted_by INTEGER REFERENCES users(id)');
+        }
+
         db.exec(`
             INSERT INTO writing_participants (writing_id, user_id)
             SELECT id, author_id FROM writings WHERE 1

@@ -10,7 +10,7 @@ const detailColumns = `
 function findAllWritings(db) {
     return db.prepare(`
         SELECT id, title, photo_url AS photoUrl
-        FROM writings
+        FROM writings WHERE deleted_at IS NULL
     `).all();
 }
 
@@ -18,7 +18,7 @@ function findWritingById(db, writingId) {
     return db.prepare(`
         SELECT ${detailColumns}
         FROM writings
-        WHERE id = ?
+        WHERE id = ? AND deleted_at IS NULL
     `).get(writingId);
 }
 
@@ -47,9 +47,16 @@ function updateWritingFields(db, { writingId, author_id, title, content, photoUr
         SET title = COALESCE(?, title),
             content = COALESCE(?, content),
             photo_url = COALESCE(?, photo_url)
-        WHERE id = ? AND author_id = ?
+        WHERE id = ? AND author_id = ? AND deleted_at IS NULL
         RETURNING ${detailColumns}
     `).get(title ?? null, content ?? null, photoUrl ?? null, writingId, author_id);
+}
+
+function markWritingDeleted(db, writingId, userId) {
+    return db.prepare(`
+        UPDATE writings SET deleted_at = ?, deleted_by = ?
+        WHERE id = ? AND author_id = ? AND deleted_at IS NULL
+    `).run(Date.now(), userId, writingId, userId).changes;
 }
 
 function hasParticipant(db, writingId, userId) {
@@ -70,5 +77,5 @@ function removeParticipant(db, writingId, userId) {
 
 module.exports = {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
-    hasParticipant, addParticipant, removeParticipant
+    hasParticipant, addParticipant, removeParticipant, markWritingDeleted
 };

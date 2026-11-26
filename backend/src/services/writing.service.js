@@ -3,7 +3,7 @@ const { findById: findUserById } = require('../repositories/user.repository');
 const { runInTransaction } = require('../../db/transaction');
 const {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
-    hasParticipant, addParticipant, removeParticipant
+    hasParticipant, addParticipant, removeParticipant, markWritingDeleted
 } = require('../repositories/writing.repository');
 
 const editableFields = {
@@ -140,4 +140,12 @@ function leaveWriting(writingId, userId) {
     });
 }
 
-module.exports = { getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting };
+function deleteWriting(writingId, userId) {
+    const writing = getWriting(writingId);
+    if (!writing) return { code: 'POST_NOT_FOUND' };
+    if (writing.author_id !== userId) return { code: 'POST_ACCESS_DENIED' };
+    if (!markWritingDeleted(db, writingId, userId)) return { code: 'POST_NOT_FOUND' };
+    return {};
+}
+
+module.exports = { getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting };

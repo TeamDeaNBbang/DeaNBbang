@@ -25,7 +25,9 @@ CREATE TABLE IF NOT EXISTS writings (
     total_price INTEGER,
     target_participant_count INTEGER,
     recruitment_ends_at INTEGER,
-    created_at INTEGER
+    created_at INTEGER,
+    deleted_at INTEGER,
+    deleted_by INTEGER REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS writing_participants (

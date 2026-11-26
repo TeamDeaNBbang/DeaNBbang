@@ -1,7 +1,7 @@
 const express = require('express');
 const {
     listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
-    requireWritingLogin, readWritingId, writingBodyError
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner
 } = require('../controllers/writing.controller');
 const { writingPhotoDir } = require('../services/writing-photo.service');
 
@@ -19,6 +19,7 @@ router.post('/join', requireWritingLogin, express.json(), readWritingId, postWri
 router.post('/leave', requireWritingLogin, express.json(), readWritingId, postWritingLeave);
 router.get('/:writingId', readWritingId, getWritingDetail);
 router.patch('/:writingId', requireWritingLogin, readWritingId, express.json(), patchWriting);
+router.delete('/:writingId', requireWritingLogin, readWritingId, deleteWritingByOwner);
 router.use(writingBodyError);
 
 module.exports = router;
