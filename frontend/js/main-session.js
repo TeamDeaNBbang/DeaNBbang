@@ -1,42 +1,27 @@
+import { api, viewer } from './writing-api.js';
+
 const loginLink = document.querySelector('#login-link');
 const logoutButton = document.querySelector('#logout-button');
-const sessionStatus = document.querySelector('#session-status');
+const myPageLink = document.querySelector('#my-page-link');
+const adminLink = document.querySelector('#admin-link');
+const status = document.querySelector('#session-status');
 
-function showSessionState(authenticated) {
-    loginLink.hidden = authenticated;
-    logoutButton.hidden = !authenticated;
-}
-
-async function loadSession() {
-    const response = await fetch('/api/auth/session');
-    if (!response.ok) {
-        throw new Error('Could not load session');
-    }
-
-    const { authenticated } = await response.json();
-    showSessionState(authenticated);
-}
+viewer().then(user => {
+    loginLink.hidden = Boolean(user);
+    logoutButton.hidden = !user;
+    myPageLink.hidden = !user;
+    adminLink.hidden = user?.role !== 'ADMIN';
+}).catch(error => {
+    status.textContent = error.message;
+});
 
 logoutButton.addEventListener('click', async () => {
     logoutButton.disabled = true;
-    sessionStatus.textContent = '';
-
     try {
-        const response = await fetch('/api/auth/logout', { method: 'POST' });
-        if (!response.ok) {
-            throw new Error('Could not end session');
-        }
-
-        showSessionState(false);
-        sessionStatus.textContent = '로그아웃했어요.';
-        loginLink.focus();
-    } catch {
-        sessionStatus.textContent = '로그아웃에 실패했어요. 다시 시도해 주세요.';
-    } finally {
+        await api('/api/auth/logout', 'POST');
+        location.assign('/');
+    } catch (error) {
+        status.textContent = error.message;
         logoutButton.disabled = false;
     }
-});
-
-loadSession().catch(() => {
-    sessionStatus.textContent = '로그인 상태를 확인할 수 없어요.';
 });

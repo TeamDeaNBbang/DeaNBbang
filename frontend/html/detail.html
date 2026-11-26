@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>공동구매 상세 | 대N</title>
+  <link rel="stylesheet" href="/css/detail.css">
+  <link rel="stylesheet" href="/css/writing.css">
+  <script type="module" src="/js/main-session.js"></script>
+  <script type="module" src="/js/detail.js"></script>
+</head>
+<body>
+  <header class="site-nav">
+    <a href="/" class="Logo">대N</a>
+    <nav aria-label="서비스 메뉴">
+      <a href="/html/create.html" class="Write">글쓰기</a>
+      <a id="my-page-link" href="/html/Mypage.html" hidden>마이페이지</a>
+      <a id="admin-link" href="/html/admin.html" hidden>신고 관리</a>
+      <a id="login-link" href="/html/login.html">로그인</a>
+      <button id="logout-button" type="button" hidden>로그아웃</button>
+    </nav>
+    <span id="session-status" class="visually-hidden" role="status"></span>
+  </header>
+  <main class="detail-container">
+    <a href="/" class="detail-back">← 목록으로</a>
+    <p id="detail-message" class="writing-status" role="status"></p>
+    <div id="post-detail" hidden>
+      <section class="detail-main">
+        <div class="detail-gallery">
+          <div class="detail-main-image">
+            <img id="main-image" alt="상품 이미지" hidden>
+            <p id="no-photo" hidden>등록된 사진이 없어요.</p>
+          </div>
+        </div>
+        <div class="detail-info">
+          <span id="recruitment-status" class="detail-status"></span>
+          <h1 id="post-title"></h1>
+          <p id="product-name"></p>
+          <a id="product-url" target="_blank" rel="noopener noreferrer" hidden>원본 상품 보기</a>
+          <p id="post-content" class="detail-description"></p>
+          <div class="detail-stats">
+            <div class="detail-stat"><p>총 구매 금액</p><strong id="total-price"></strong></div>
+            <div class="detail-stat"><p>참가 인원</p><strong id="participant-count"></strong></div>
+            <div class="detail-stat highlight"><p>현재 1인당 예상 금액</p><strong id="price-per-person"></strong></div>
+            <div class="detail-stat"><p>목표 달성 시 예상 금액</p><strong id="expected-price"></strong></div>
+          </div>
+          <button id="participation" class="detail-join-btn" type="button">참가하기</button>
+        </div>
+      </section>
+      <div class="detail-actions page-actions">
+        <button id="report-button" class="detail-report" type="button">신고하기</button>
+        <a id="edit-link" class="detail-edit" hidden>수정하기</a>
+        <button id="close-button" type="button" hidden>모집 마감</button>
+        <button id="delete-button" class="detail-delete" type="button" hidden>삭제하기</button>
+      </div>
+      <form id="report-form" hidden>
+        <label for="report-reason">신고 사유</label>
+        <textarea id="report-reason" name="reason" rows="4" maxlength="1000" required></textarea>
+        <div class="page-actions">
+          <button id="report-cancel" type="button">취소</button>
+          <button type="submit">신고 제출</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+</html>
