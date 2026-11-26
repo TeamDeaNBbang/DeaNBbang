@@ -10,7 +10,11 @@ const { createWriting, findAllWritings, findWritingById } = require('../src/repo
 const png = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/tFcAAAAASUVORK5CYII=', 'base64'
 );
-const validFields = { title: 'Group order', content: 'Order details', photoUrl: '/images/photo.png' };
+const validFields = {
+    title: 'Group order', content: 'Order details', photoUrl: '/images/photo.png',
+    productName: 'Water', productUrl: 'https://example.test/water', totalPrice: 12000,
+    targetParticipantCount: 2
+};
 
 function seedUsers(db) {
     const password = 'test-password';
@@ -47,13 +51,23 @@ test('database initialization preserves older posts and can run again', t => {
     initializeDatabase(db);
     initializeDatabase(db);
     assert.deepEqual({ ...findWritingById(db, 3) }, {
-        id: 3, title: 'Older post', author_id: 1, content: null, photoUrl: null
+        id: 3, title: 'Older post', author_id: 1, content: null, photoUrl: null,
+        productName: null, productUrl: null, totalPrice: null, targetParticipantCount: null,
+        recruitmentEndsAt: null, participantCount: 1
     });
 
     const id = createWriting(db, { ...validFields, author_id: 1 });
     assert.deepEqual({ ...findAllWritings(db).find(row => row.id === id) }, {
         id, title: validFields.title, photoUrl: validFields.photoUrl
     });
+    assert.equal(findWritingById(db, id).participantCount, 1);
+
+    db.exec(`
+        CREATE TRIGGER reject_participant BEFORE INSERT ON writing_participants
+        BEGIN SELECT RAISE(ABORT, '가입 저장 실패'); END;
+    `);
+    assert.throws(() => createWriting(db, { ...validFields, author_id: 1 }), /가입 저장 실패/);
+    assert.equal(db.prepare('SELECT count(*) AS count FROM writings').get().count, 2);
 });
 
 test('writing API requires title, content and photo on creation and supports partial updates', async t => {
@@ -138,7 +152,7 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal(created.status, 201);
     const id = created.body.writingId;
     const endpoint = '/writing/' + id;
-    const expected = { id, ...validFields, photoUrl, author_id: 1 };
+    const expected = { id, ...validFields, photoUrl, author_id: 1, recruitmentEndsAt: null, participantCount: 1 };
     assert.deepEqual((await request('GET', '/writing')).body, [{ id, title: validFields.title, photoUrl }]);
     assert.deepEqual((await request('GET', endpoint)).body, expected);
 

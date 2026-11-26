@@ -19,5 +19,17 @@ CREATE TABLE IF NOT EXISTS writings (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     photo_url TEXT NOT NULL,
-    author_id INTEGER NOT NULL REFERENCES users(id)
+    author_id INTEGER NOT NULL REFERENCES users(id),
+    product_name TEXT,
+    product_url TEXT,
+    total_price INTEGER,
+    target_participant_count INTEGER,
+    recruitment_ends_at INTEGER,
+    created_at INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS writing_participants (
+    writing_id INTEGER NOT NULL REFERENCES writings(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    PRIMARY KEY (writing_id, user_id)
 );

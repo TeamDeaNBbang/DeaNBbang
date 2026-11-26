@@ -16,12 +16,40 @@ function getWriting(writingId) {
     return findWritingById(db, writingId);
 }
 
-function isPhotoUrl(value) {
-    if (/[\s\\]/.test(value)) return false;
-    if (/^\/[^/]/.test(value)) return true;
-    if (!/^https?:\/\//i.test(value)) return false;
+function isWebUrl(value) {
+    if (/[\s\\]/.test(value) || !/^https?:\/\//i.test(value)) return false;
     const url = URL.parse(value);
     return url !== null && !url.username && !url.password;
+}
+
+function isPhotoUrl(value) {
+    return !/[\s\\]/.test(value) && (/^\/[^/]/.test(value) || isWebUrl(value));
+}
+
+function validatePurchase(body, values, errors) {
+    const { productName, productUrl, totalPrice, targetParticipantCount, recruitmentEndsAt } = body;
+    if (typeof productName !== 'string' || !productName.trim()) {
+        errors.push(['productName', '상품 이름을 입력해 주세요.']);
+    }
+    if (typeof productUrl !== 'string' || !isWebUrl(productUrl.trim())) {
+        errors.push(['productUrl', '상품의 HTTP(S) 주소를 입력해 주세요.']);
+    }
+    if (!Number.isSafeInteger(totalPrice) || totalPrice < 1) {
+        errors.push(['totalPrice', '총금액은 1 이상의 정수로 입력해 주세요.']);
+    }
+    if (!Number.isSafeInteger(targetParticipantCount) || targetParticipantCount < 1) {
+        errors.push(['targetParticipantCount', '목표 인원은 작성자를 포함해 1명 이상이어야 합니다.']);
+    }
+    if (recruitmentEndsAt !== undefined && (!Number.isSafeInteger(recruitmentEndsAt) || recruitmentEndsAt <= Date.now())) {
+        errors.push(['recruitmentEndsAt', '모집 마감 시각은 미래 시각으로 입력해 주세요.']);
+    }
+    if (errors.length) return;
+
+    values.productName = productName.trim();
+    values.productUrl = productUrl.trim();
+    values.totalPrice = totalPrice;
+    values.targetParticipantCount = targetParticipantCount;
+    values.recruitmentEndsAt = recruitmentEndsAt ?? null;
 }
 
 function validateWriting(body, isPatch) {
@@ -51,6 +79,7 @@ function validateWriting(body, isPatch) {
         }
     }
 
+    if (!isPatch) validatePurchase(body, values, errors);
     if (errors.length) return { code: 'VALIDATION_ERROR', fieldErrors: Object.fromEntries(errors) };
     return { values };
 }
