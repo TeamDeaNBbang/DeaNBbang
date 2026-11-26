@@ -44,6 +44,14 @@ function initializeDatabase(db) {
         if (!columns.has('deleted_by')) {
             db.exec('ALTER TABLE writings ADD COLUMN deleted_by INTEGER REFERENCES users(id)');
         }
+        if (!columns.has('deletion_reason')) {
+            db.exec('ALTER TABLE writings ADD COLUMN deletion_reason TEXT');
+        }
+
+        const notificationColumns = db.prepare('PRAGMA table_info(deletion_notifications)').all();
+        if (!notificationColumns.some(column => column.name === 'deletion_reason')) {
+            db.exec("ALTER TABLE deletion_notifications ADD COLUMN deletion_reason TEXT NOT NULL DEFAULT '관리자 검토 후 삭제되었습니다.'");
+        }
 
         const participantColumns = db.prepare('PRAGMA table_info(writing_participants)').all();
         if (!participantColumns.some(column => column.name === 'joined_at')) {
