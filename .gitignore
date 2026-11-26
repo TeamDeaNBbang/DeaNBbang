@@ -13,3 +13,4 @@ backend/data/
 *-wal
 *-shm
 *-journal
+.railway/.cac-migration.json
