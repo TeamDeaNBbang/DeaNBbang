@@ -2,6 +2,7 @@ const db = require('../config/db');
 
 function claimNext() {
     const now = Date.now();
+    // Reserve one delivery before sending; another worker skips the reservation.
     return db.prepare(`
         UPDATE deletion_notifications
         SET attempts = attempts + 1, next_attempt_at = ?
@@ -16,13 +17,13 @@ function claimNext() {
 }
 
 function markSent(id, attempt) {
-    db.prepare('UPDATE deletion_notifications SET sent_at = ? WHERE id = ? AND attempts = ?')
+    db.prepare('UPDATE deletion_notifications SET sent_at = ? WHERE id = ? AND attempts = ? AND sent_at IS NULL')
         .run(Date.now(), id, attempt);
 }
 
 function scheduleRetry(id, attempt) {
     const delay = 60000 * (2 ** (attempt - 1));
-    db.prepare('UPDATE deletion_notifications SET next_attempt_at = ? WHERE id = ? AND attempts = ?')
+    db.prepare('UPDATE deletion_notifications SET next_attempt_at = ? WHERE id = ? AND attempts = ? AND sent_at IS NULL')
         .run(Date.now() + delay, id, attempt);
 }
 
