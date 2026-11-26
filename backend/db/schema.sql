@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS reports (
     UNIQUE (writing_id, reporter_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_reports_writing ON reports(writing_id);
+
 CREATE TABLE IF NOT EXISTS deletion_notifications (
     id INTEGER PRIMARY KEY,
     writing_id INTEGER NOT NULL UNIQUE REFERENCES writings(id),

@@ -21,7 +21,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api', sessionMiddleware);
 app.use('/api', requireSameOrigin);
 app.use('/api/auth', express.json(), authRoutes);
-app.use('/api/admin', express.json(), adminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/writing', require('./routes/writing.routes'));
 app.use('/api/other', require('./routes/other.routes'));
 app.use(errorHandler);
