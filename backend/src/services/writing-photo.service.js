@@ -1,8 +1,9 @@
 const { randomUUID } = require('node:crypto');
 const { mkdir, writeFile } = require('node:fs/promises');
 const path = require('node:path');
+const { dataDir } = require('../config/paths');
 
-const writingPhotoDir = path.join(__dirname, '../../data/writing-photos');
+const writingPhotoDir = path.join(dataDir, 'writing-photos');
 const maxPhotoBytes = 5 * 1024 * 1024;
 const pngHeader = Buffer.from('89504e470d0a1a0a', 'hex');
 const jpegHeader = Buffer.from('ffd8ff', 'hex');
