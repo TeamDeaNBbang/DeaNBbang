@@ -200,6 +200,15 @@ test('writing API requires title, content and photo on creation and supports par
         writingId: id, participantCount: 2, joined: true
     });
     assert.equal(competing.find(result => result.status === 409).body.code, 'CAPACITY_EXCEEDED');
+
+    const listItem = { id, title: validFields.title, photoUrl: replacement };
+    assert.equal((await request('GET', '/writing/me')).status, 401);
+    assert.deepEqual((await request('GET', '/writing/me', undefined, author)).body, {
+        written: [listItem], joined: [listItem]
+    });
+    assert.deepEqual((await request('GET', '/writing/me?userId=1', undefined, winner)).body, {
+        written: [], joined: [listItem]
+    });
     assert.equal((await request('POST', '/writing/join', { writingId: id }, winner)).body.code, 'ALREADY_JOINED');
 
     assert.equal((await request('POST', '/writing/leave', { writingId: id }, winner)).status, 204);
@@ -229,4 +238,5 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).status, 404);
     assert.equal(db.prepare('SELECT deleted_by FROM writings WHERE id = ?').get(id).deleted_by, 1);
     assert.equal((await request('POST', reportEndpoint, { reason: 'Deleted post' }, third)).status, 404);
+    assert.deepEqual((await request('GET', '/writing/me', undefined, author)).body, { written: [], joined: [] });
 });

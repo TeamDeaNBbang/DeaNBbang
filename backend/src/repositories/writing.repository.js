@@ -75,7 +75,27 @@ function removeParticipant(db, writingId, userId) {
         .run(writingId, userId);
 }
 
+function findWrittenByUser(db, userId) {
+    return db.prepare(`
+        SELECT id, title, photo_url AS photoUrl
+        FROM writings
+        WHERE author_id = ? AND deleted_at IS NULL
+        ORDER BY id DESC
+    `).all(userId);
+}
+
+function findJoinedByUser(db, userId) {
+    return db.prepare(`
+        SELECT w.id, w.title, w.photo_url AS photoUrl
+        FROM writing_participants p
+        JOIN writings w ON w.id = p.writing_id
+        WHERE p.user_id = ? AND w.deleted_at IS NULL
+        ORDER BY w.id DESC
+    `).all(userId);
+}
+
 module.exports = {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
-    hasParticipant, addParticipant, removeParticipant, markWritingDeleted
+    hasParticipant, addParticipant, removeParticipant, markWritingDeleted,
+    findWrittenByUser, findJoinedByUser
 };

@@ -4,7 +4,8 @@ const { runInTransaction } = require('../../db/transaction');
 const { createReport } = require('../repositories/report.repository');
 const {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
-    hasParticipant, addParticipant, removeParticipant, markWritingDeleted
+    hasParticipant, addParticipant, removeParticipant, markWritingDeleted,
+    findWrittenByUser, findJoinedByUser
 } = require('../repositories/writing.repository');
 
 const editableFields = {
@@ -161,6 +162,14 @@ function reportWriting(writingId, reporterId, body) {
     return { code: 'ALREADY_REPORTED' };
 }
 
+function getMyWritings(userId) {
+    return {
+        written: findWrittenByUser(db, userId),
+        joined: findJoinedByUser(db, userId)
+    };
+}
+
 module.exports = {
-    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting,
+    getMyWritings
 };

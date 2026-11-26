@@ -1,5 +1,6 @@
 const {
-    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting,
+    getMyWritings
 } = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
 
@@ -88,6 +89,10 @@ function postWritingLeave(req, res) {
     return res.status(204).end();
 }
 
+function getMyWritingList(req, res) {
+    return res.json(getMyWritings(req.session.userId));
+}
+
 function postWritingReport(req, res) {
     const result = reportWriting(res.locals.writingId, req.session.userId, req.body);
     if (result.code) return sendWritingError(res, result);
@@ -135,5 +140,5 @@ function writingBodyError(error, req, res, next) {
 
 module.exports = {
     listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
-    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport, getMyWritingList
 };
