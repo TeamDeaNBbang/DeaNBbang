@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const { findById: findUserById } = require('../repositories/user.repository');
 const { runInTransaction } = require('../../db/transaction');
+const { createReport } = require('../repositories/report.repository');
 const {
     findAllWritings, findWritingById, createWriting, updateWritingFields,
     hasParticipant, addParticipant, removeParticipant, markWritingDeleted
@@ -148,4 +149,18 @@ function deleteWriting(writingId, userId) {
     return {};
 }
 
-module.exports = { getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting };
+function reportWriting(writingId, reporterId, body) {
+    const reason = typeof body?.reason === 'string' ? body.reason.trim() : '';
+    if (!reason || reason.length > 1000) {
+        return { code: 'VALIDATION_ERROR', fieldErrors: { reason: '신고 사유를 1자 이상 1,000자 이하로 입력해 주세요.' } };
+    }
+
+    const result = createReport(db, { writingId, reporterId, reason });
+    if (result.changes) return { id: result.lastInsertRowid, writingId };
+    if (!getWriting(writingId)) return { code: 'POST_NOT_FOUND' };
+    return { code: 'ALREADY_REPORTED' };
+}
+
+module.exports = {
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting
+};

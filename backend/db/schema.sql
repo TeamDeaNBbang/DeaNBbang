@@ -35,3 +35,12 @@ CREATE TABLE IF NOT EXISTS writing_participants (
     user_id INTEGER NOT NULL REFERENCES users(id),
     PRIMARY KEY (writing_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS reports (
+    id INTEGER PRIMARY KEY,
+    writing_id INTEGER NOT NULL REFERENCES writings(id),
+    reporter_id INTEGER NOT NULL REFERENCES users(id),
+    reason TEXT NOT NULL CHECK (length(trim(reason)) BETWEEN 1 AND 1000),
+    created_at INTEGER NOT NULL,
+    UNIQUE (writing_id, reporter_id)
+);

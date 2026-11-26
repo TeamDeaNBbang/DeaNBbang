@@ -1,5 +1,5 @@
 const {
-    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting
 } = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
 
@@ -13,7 +13,8 @@ const writingErrors = {
     ALREADY_JOINED: [409, '이미 참가한 공동구매입니다.'],
     CAPACITY_EXCEEDED: [409, '모집 정원이 다 찼습니다.'],
     RECRUITMENT_CLOSED: [409, '참가와 탈퇴가 가능한 모집 상태가 아닙니다.'],
-    OWNER_CANNOT_LEAVE: [403, '작성자는 탈퇴할 수 없습니다.']
+    OWNER_CANNOT_LEAVE: [403, '작성자는 탈퇴할 수 없습니다.'],
+    ALREADY_REPORTED: [409, '이미 신고한 글입니다.']
 };
 
 function sendWritingError(res, { code, fieldErrors }) {
@@ -87,6 +88,12 @@ function postWritingLeave(req, res) {
     return res.status(204).end();
 }
 
+function postWritingReport(req, res) {
+    const result = reportWriting(res.locals.writingId, req.session.userId, req.body);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(201).json(result);
+}
+
 async function postWritingPhoto(req, res) {
     let form;
     try {
@@ -128,5 +135,5 @@ function writingBodyError(error, req, res, next) {
 
 module.exports = {
     listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
-    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport
 };

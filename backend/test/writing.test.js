@@ -210,6 +210,16 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
     assert.equal((await request('POST', '/writing/leave', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
 
+    const reportEndpoint = '/writing/accuse/' + id;
+    assert.equal((await request('POST', reportEndpoint, { reason: 'Check this post' })).status, 401);
+    assert.equal((await request('POST', reportEndpoint, { reason: '  ' }, other)).status, 400);
+    const reported = await request('POST', reportEndpoint, { reason: ' Check this post ', reporterId: 3 }, other);
+    assert.equal(reported.status, 201);
+    assert.deepEqual({ ...db.prepare('SELECT writing_id, reporter_id, reason FROM reports WHERE id = ?').get(reported.body.id) }, {
+        writing_id: id, reporter_id: 2, reason: 'Check this post'
+    });
+    assert.equal((await request('POST', reportEndpoint, { reason: 'Again' }, other)).body.code, 'ALREADY_REPORTED');
+
     assert.equal((await request('DELETE', endpoint)).status, 401);
     assert.equal((await request('DELETE', endpoint, undefined, other)).status, 403);
     assert.equal((await request('DELETE', endpoint, undefined, author)).status, 204);
@@ -218,4 +228,5 @@ test('writing API requires title, content and photo on creation and supports par
     assert.deepEqual((await request('GET', '/writing')).body, []);
     assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).status, 404);
     assert.equal(db.prepare('SELECT deleted_by FROM writings WHERE id = ?').get(id).deleted_by, 1);
+    assert.equal((await request('POST', reportEndpoint, { reason: 'Deleted post' }, third)).status, 404);
 });
