@@ -1,7 +1,8 @@
 const express = require('express');
 const {
-    listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto,
-    requireWritingLogin, readWritingId, writingBodyError
+    listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport, getMyWritingList,
+    postWritingClose
 } = require('../controllers/writing.controller');
 const { writingPhotoDir } = require('../services/writing-photo.service');
 
@@ -15,8 +16,14 @@ router.use('/photo', express.static(writingPhotoDir, {
     redirect: false,
     setHeaders(res) { res.setHeader('X-Content-Type-Options', 'nosniff'); }
 }));
+router.post('/close', requireWritingLogin, express.json(), readWritingId, postWritingClose);
+router.post('/join', requireWritingLogin, express.json(), readWritingId, postWritingJoin);
+router.post('/leave', requireWritingLogin, express.json(), readWritingId, postWritingLeave);
+router.post('/accuse/:writingId', requireWritingLogin, readWritingId, express.json(), postWritingReport);
+router.get('/me', requireWritingLogin, getMyWritingList);
 router.get('/:writingId', readWritingId, getWritingDetail);
 router.patch('/:writingId', requireWritingLogin, readWritingId, express.json(), patchWriting);
+router.delete('/:writingId', requireWritingLogin, readWritingId, deleteWritingByOwner);
 router.use(writingBodyError);
 
 module.exports = router;

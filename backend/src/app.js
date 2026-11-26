@@ -18,5 +18,6 @@ app.get('/api/health', (req, res) => {
 app.use('/api', sessionMiddleware);
 app.use('/api/auth', express.json(), authRoutes);
 app.use('/api/writing', require('./routes/writing.routes'));
+app.use('/api/other', require('./routes/other.routes'));
 
 module.exports = app;

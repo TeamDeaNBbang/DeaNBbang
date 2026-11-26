@@ -1,13 +1,21 @@
-const { getWritings, getWriting, addWriting, updateWriting } = require('../services/writing.service');
+const {
+    getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting, deleteWriting, reportWriting,
+    getMyWritings, closeWriting, getMainWritings, getMyPage
+} = require('../services/writing.service');
 const { saveWritingPhoto } = require('../services/writing-photo.service');
 
 const writingErrors = {
     UNAUTHORIZED: [401, '로그인이 필요합니다.'],
     USER_NOT_FOUND: [404, '사용자를 찾을 수 없습니다.'],
     POST_NOT_FOUND: [404, '글을 찾을 수 없습니다.'],
-    POST_ACCESS_DENIED: [403, '작성자만 글을 수정할 수 있습니다.'],
+    POST_ACCESS_DENIED: [403, '작성자만 글을 수정·삭제하거나 모집을 마감할 수 있습니다.'],
     VALIDATION_ERROR: [400, '요청 값을 확인해 주세요.'],
-    PHOTO_TOO_LARGE: [413, '사진은 5MB까지 올릴 수 있습니다.']
+    PHOTO_TOO_LARGE: [413, '사진은 5MB까지 올릴 수 있습니다.'],
+    ALREADY_JOINED: [409, '이미 참가한 공동구매입니다.'],
+    CAPACITY_EXCEEDED: [409, '모집 정원이 다 찼습니다.'],
+    RECRUITMENT_CLOSED: [409, '참가와 탈퇴가 가능한 모집 상태가 아닙니다.'],
+    OWNER_CANNOT_LEAVE: [403, '작성자는 탈퇴할 수 없습니다.'],
+    ALREADY_REPORTED: [409, '이미 신고한 글입니다.']
 };
 
 function sendWritingError(res, { code, fieldErrors }) {
@@ -26,8 +34,8 @@ function requireWritingLogin(req, res, next) {
 
 function readWritingId(req, res, next) {
     const rawId = req.params.writingId;
-    const writingId = Number(rawId);
-    if (!/^\d+$/.test(rawId) || !Number.isSafeInteger(writingId) || writingId < 1) {
+    const writingId = rawId === undefined ? req.body?.writingId : Number(rawId);
+    if ((rawId !== undefined && !/^\d+$/.test(rawId)) || !Number.isSafeInteger(writingId) || writingId < 1) {
         return sendWritingError(res, {
             code: 'VALIDATION_ERROR',
             fieldErrors: { writingId: '글 번호는 양의 정수여야 합니다.' }
@@ -42,9 +50,9 @@ function listWritings(req, res) {
 }
 
 function getWritingDetail(req, res) {
-    const writing = getWriting(res.locals.writingId);
+    const writing = getWriting(res.locals.writingId, req.session?.userId);
     if (!writing) return sendWritingError(res, { code: 'POST_NOT_FOUND' });
-    return res.json(writing);
+    return res.set('Cache-Control', 'private, no-store').json(writing);
 }
 
 function postWriting(req, res) {
@@ -61,6 +69,67 @@ function patchWriting(req, res) {
     });
     if (result.code) return sendWritingError(res, result);
     return res.json(result.writing);
+}
+
+function deleteWritingByOwner(req, res) {
+    const result = deleteWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(204).end();
+}
+
+function postWritingClose(req, res) {
+    const result = closeWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(204).end();
+}
+
+function postWritingJoin(req, res) {
+    const result = joinWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(201).json(result);
+}
+
+function postWritingLeave(req, res) {
+    const result = leaveWriting(res.locals.writingId, req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(204).end();
+}
+
+function readPageNumber(value, defaultValue) {
+    if (value === undefined) return defaultValue;
+    if (typeof value !== 'string' || !/^\d+$/.test(value)) return NaN;
+    return Number(value);
+}
+
+function listMainWritings(req, res) {
+    const page = readPageNumber(req.query.page, 0);
+    const size = readPageNumber(req.query.size, 20);
+    const fieldErrors = {};
+    if (!Number.isSafeInteger(page) || page < 0) fieldErrors.page = '페이지는 0 이상의 정수여야 합니다.';
+    if (!Number.isInteger(size) || size < 1 || size > 100) fieldErrors.size = '페이지 크기는 1~100 사이여야 합니다.';
+    if (!fieldErrors.page && !fieldErrors.size && !Number.isSafeInteger(page * size)) {
+        fieldErrors.page = '페이지 번호가 너무 큽니다.';
+    }
+    if (Object.keys(fieldErrors).length) {
+        return sendWritingError(res, { code: 'VALIDATION_ERROR', fieldErrors });
+    }
+    return res.json(getMainWritings(page, size));
+}
+
+function getMyPageInfo(req, res) {
+    const result = getMyPage(req.session.userId);
+    if (result.code) return sendWritingError(res, result);
+    return res.set('Cache-Control', 'private, no-store').json(result);
+}
+
+function getMyWritingList(req, res) {
+    return res.json(getMyWritings(req.session.userId));
+}
+
+function postWritingReport(req, res) {
+    const result = reportWriting(res.locals.writingId, req.session.userId, req.body);
+    if (result.code) return sendWritingError(res, result);
+    return res.status(201).json(result);
 }
 
 async function postWritingPhoto(req, res) {
@@ -103,6 +172,7 @@ function writingBodyError(error, req, res, next) {
 }
 
 module.exports = {
-    listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto,
-    requireWritingLogin, readWritingId, writingBodyError
+    listWritings, getWritingDetail, postWriting, patchWriting, postWritingPhoto, postWritingJoin, postWritingLeave,
+    requireWritingLogin, readWritingId, writingBodyError, deleteWritingByOwner, postWritingReport, getMyWritingList,
+    postWritingClose, listMainWritings, getMyPageInfo
 };
