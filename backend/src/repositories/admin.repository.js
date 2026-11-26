@@ -10,7 +10,7 @@ function findReportedWritings(db, { size, offset }) {
         JOIN users u ON u.id = w.author_id
         WHERE w.deleted_at IS NULL
         GROUP BY w.id
-        ORDER BY latestReportAt DESC, w.id DESC
+        ORDER BY latestReportAt DESC, MAX(r.id) DESC, w.id DESC
         LIMIT ? OFFSET ?
     `).all(size, offset);
     if (!items.length) return [];
@@ -28,7 +28,12 @@ function findReportedWritings(db, { size, offset }) {
         const { writingId, ...details } = report;
         byWriting.get(writingId).push(details);
     }
-    return items.map(item => ({ ...item, reports: byWriting.get(item.writingId) }));
+    return items.map(item => ({
+        ...item,
+        reason: byWriting.get(item.writingId)[0]?.reason,
+        createdAt: item.latestReportAt,
+        reports: byWriting.get(item.writingId)
+    }));
 }
 
 function countReportedWritings(db) {

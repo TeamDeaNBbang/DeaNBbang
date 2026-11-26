@@ -44,6 +44,7 @@ function initializeDatabase(db) {
         if (!columns.has('deleted_by')) {
             db.exec('ALTER TABLE writings ADD COLUMN deleted_by INTEGER REFERENCES users(id)');
         }
+
         if (!columns.has('deletion_reason')) {
             db.exec('ALTER TABLE writings ADD COLUMN deletion_reason TEXT');
         }

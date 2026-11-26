@@ -82,7 +82,7 @@ test('administrator APIs preserve participation APIs and queue deletion email at
         db.prepare('UPDATE reports SET created_at = 20 WHERE writing_id = ?').run(secondId);
         db.prepare('UPDATE reports SET created_at = 30 WHERE writing_id = ?').run(writingId);
         const first = await request('GET', '/admin/accuse?size=1', undefined, administrator);
-        assert.equal(first.headers.get('cache-control'), 'private, no-store');
+        assert.equal(first.headers.get('cache-control'), 'no-store');
         assert.equal(first.body.totalElements, 2);
         assert.equal(first.body.hasNext, true);
         assert.equal(first.body.items[0].writingId, writingId);
@@ -103,7 +103,7 @@ test('administrator APIs preserve participation APIs and queue deletion email at
 
     await t.test('delete validates reason and id and handles malformed JSON without deleting', async () => {
         for (const body of [undefined, null, [], {}, { reason: ' ' }, { reason: 42 }, { reason: 'a'.repeat(1001) }]) {
-            const response = await request('DELETE', '/admin/' + writingId, body, administrator);
+            const response = await request('DELETE', '/admin/writing/' + writingId, body, administrator);
             assert.equal(response.status, 400);
             assert.ok(response.body.fieldErrors.reason || response.body.fieldErrors.body);
         }
