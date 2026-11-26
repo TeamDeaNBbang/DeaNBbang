@@ -1,0 +1,14 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: #203026; background: #f7ffe5; }
+header { display: flex; gap: 24px; padding: 20px; background: #fcfff8; border-bottom: 1px solid #c4d0b7; }
+a { color: #275b33; }
+main { max-width: 920px; margin: 0 auto; padding: 24px; }
+article { background: white; border: 1px solid #c4d0b7; border-radius: 8px; padding: 20px; margin-bottom: 20px; overflow-wrap: anywhere; }
+h2 { margin-top: 0; }
+p, pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+button { padding: 10px 16px; cursor: pointer; }
+button:disabled { cursor: wait; }
+.danger { color: #8a2424; }
+label { display: block; margin-bottom: 8px; }
+textarea { display: block; width: 100%; min-height: 110px; padding: 10px; margin-bottom: 12px; }
+[role="status"] { min-height: 24px; }

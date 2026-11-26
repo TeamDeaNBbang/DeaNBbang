@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>마이페이지 | 대N</title>
+  <link rel="stylesheet" href="/css/Mypage.css">
+  <link rel="stylesheet" href="/css/writing.css">
+  <script type="module" src="/js/main-session.js"></script>
+  <script type="module" src="/js/mypage.js"></script>
+</head>
+<body>
+  <header class="site-nav">
+    <a href="/" class="Logo">대N</a>
+    <nav aria-label="서비스 메뉴">
+      <a href="/html/create.html" class="Write">글쓰기</a>
+      <a id="my-page-link" href="/html/Mypage.html" hidden>마이페이지</a>
+      <a id="admin-link" href="/html/admin.html" hidden>신고 관리</a>
+      <a id="login-link" href="/html/login.html">로그인</a>
+      <button id="logout-button" type="button" hidden>로그아웃</button>
+    </nav>
+    <span id="session-status" class="visually-hidden" role="status"></span>
+  </header>
+  <main class="main">
+    <h1>마이페이지</h1>
+    <p id="mypage-status" class="writing-status" role="status"></p>
+    <section id="my-profile" class="profile" hidden>
+      <h2 id="username"></h2>
+      <p id="user-role"></p>
+    </section>
+    <section class="my-writing-list" aria-labelledby="written-title">
+      <h2 id="written-title">내가 작성한 글</h2>
+      <p id="written-empty" hidden>아직 작성한 글이 없어요.</p>
+      <div id="written-grid" class="post-grid"></div>
+    </section>
+    <section class="my-writing-list" aria-labelledby="joined-title">
+      <h2 id="joined-title">내가 참가한 글</h2>
+      <p id="joined-empty" hidden>아직 참가한 글이 없어요.</p>
+      <div id="joined-grid" class="post-grid"></div>
+    </section>
+  </main>
+</body>
+</html>

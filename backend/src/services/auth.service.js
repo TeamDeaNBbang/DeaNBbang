@@ -12,6 +12,10 @@ const verificationSecret = process.env.EMAIL_VERIFICATION_SECRET || randomBytes(
 const codeLifetime = 10 * 60 * 1000;
 const resendDelay = 60 * 1000;
 
+if (process.env.NODE_ENV === 'production' && (!process.env.EMAIL_VERIFICATION_SECRET || process.env.EMAIL_VERIFICATION_SECRET.length < 32)) {
+    throw new Error('EMAIL_VERIFICATION_SECRET must contain at least 32 characters in production.');
+}
+
 function normalizeEmail(value) {
     return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
