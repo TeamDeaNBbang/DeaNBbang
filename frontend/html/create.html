@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>모집 글 작성 | 대N</title>
+  <link rel="stylesheet" href="/css/create.css">
+  <link rel="stylesheet" href="/css/writing.css">
+  <script type="module" src="/js/main-session.js"></script>
+  <script type="module" src="/js/create.js"></script>
+</head>
+<body>
+  <header class="site-nav">
+    <a href="/" class="Logo">대N</a>
+    <nav aria-label="서비스 메뉴">
+      <a href="/html/create.html" class="Write">글쓰기</a>
+      <a id="my-page-link" href="/html/Mypage.html" hidden>마이페이지</a>
+      <a id="admin-link" href="/html/admin.html" hidden>신고 관리</a>
+      <a id="login-link" href="/html/login.html">로그인</a>
+      <button id="logout-button" type="button" hidden>로그아웃</button>
+    </nav>
+    <span id="session-status" class="visually-hidden" role="status"></span>
+  </header>
+  <main class="main">
+    <h1 id="form-title">모집 글 작성</h1>
+    <p id="form-message" class="form-message" role="status"></p>
+    <form id="create-form">
+      <fieldset id="writing-fields" disabled>
+        <ul id="inputlist">
+          <li><div class="input-group">
+            <label for="product-image">상품 사진</label>
+            <input id="product-image" name="photo" type="file" accept="image/png,image/jpeg,image/webp" required>
+            <img id="image-preview" alt="상품 사진 미리보기" hidden>
+          </div></li>
+          <li><div class="input-group">
+            <label for="title">제목</label><input id="title" name="title" required>
+          </div></li>
+          <li data-purchase-field><div class="input-group">
+            <label for="product-name">상품명</label><input id="product-name" name="productName" required>
+          </div></li>
+          <li data-purchase-field><div class="input-group">
+            <label for="product-url">원본 상품 링크</label><input type="url" id="product-url" name="productUrl" required>
+          </div></li>
+          <li data-purchase-field><div class="input-group">
+            <label for="total-price">총 구매 금액 (원)</label><input type="number" id="total-price" name="totalPrice" min="1" step="1" required>
+          </div></li>
+          <li data-purchase-field><div class="input-group">
+            <label for="target-count">목표 인원 (작성자 포함)</label><input type="number" id="target-count" name="targetCount" min="2" step="1" required>
+          </div></li>
+          <li><div class="input-group">
+            <label for="content">상세 설명</label><textarea id="content" name="content" required></textarea>
+          </div></li>
+        </ul>
+      </fieldset>
+      <div id="button" class="page-actions">
+        <a id="cancel-link" href="/">취소</a>
+        <button type="submit" class="submit-bttn" disabled>등록하기</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

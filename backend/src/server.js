@@ -1,11 +1,10 @@
-const express = require("express");
+const app = require('./app');
+const { deliverPending } = require('./services/notification.service');
+const port = process.env.PORT || 3000;
 
-const app = express();
-
-app.listen(3000, () => {
-    console.log("서버 주소: http://localhost:3000");
-})
-
-app.get("/", (req, res) => {
-    console.log("백엔드 실행");
-})
+app.listen(port, '0.0.0.0', () => {
+  console.log(`서버 주소: http://localhost:${port}`);
+  const deliver = () => deliverPending().catch(() => console.error('삭제 안내 메일 처리 실패'));
+  deliver();
+  setInterval(deliver, 5000).unref();
+});

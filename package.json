@@ -1,0 +1,25 @@
+{
+  "name": "deanbbang",
+  "version": "1.0.0",
+  "description": "학교 친구들과 공동구매할 사람을 모집하고 참여하는 서비스입니다.",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeamDeaNBbang/DeaNBbang.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/TeamDeaNBbang/DeaNBbang/issues"
+  },
+  "homepage": "https://github.com/TeamDeaNBbang/DeaNBbang#readme",
+  "devDependencies": {
+    "railway": "^3.18.0"
+  }
+}
