@@ -1,0 +1,56 @@
+[hidden] { display: none !important; }
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.site-nav nav, .page-actions, .list-paging {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.site-nav nav a, .site-nav button { color: #245334; }
+.site-nav button, .page-actions button, .list-paging button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #64906b;
+  background: #fff;
+  cursor: pointer;
+}
+button:disabled { cursor: default; opacity: .62; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr));
+  gap: 18px;
+  margin: 16px 0;
+}
+.post-card {
+  min-width: 0;
+  border: 1px solid #c4d0b7;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+.post-card > a { display: block; color: #223528; text-decoration: none; overflow-wrap: anywhere; }
+.post-card > a:focus-visible { outline: 2px solid #27613c; outline-offset: -3px; }
+.post-card img, .post-card .no-photo { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.post-card .no-photo { display: grid; place-items: center; background: #ebf2e7; }
+.post-card .summary { padding: 12px; }
+.post-card h3, .post-card p { margin: 0 0 8px; }
+.writing-status { color: #49624d; min-height: 1.4em; }
+#report-form, .my-writing-list { margin: 18px 0; }
+#report-form label, #report-form textarea { display: block; width: 100%; }
+#report-form textarea { margin: 6px 0; }
+.detail-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.read-only-fields { opacity: .72; }

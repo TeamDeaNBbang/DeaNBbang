@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#f7fff2;color:#252b35;font-family:'Noto Sans KR',Arial,sans-serif}
+header{min-height:68px;padding:14px max(20px,calc((100% - 1120px)/2));background:#fff;border-bottom:1px solid #e5eee1;display:flex;align-items:center;gap:24px}
+.Logo{margin-right:auto;color:#286b36;font-size:22px;font-weight:800;text-decoration:none}
+.Write{color:#477b50;font-size:14px;font-weight:600;text-decoration:none}
+.main{max-width:1160px;margin:32px auto 60px;padding:0 24px}
+.main>h1{margin:0 0 6px;color:#25372a;font-size:27px;letter-spacing:-.7px}
+.main>p{margin:0 0 23px;color:#7b847b;font-size:13px}
+.profile,.Content{display:inline-block;vertical-align:top;border:1px solid #e5eee1;border-radius:12px;background:#fff}
+.profile{width:250px;min-height:270px;padding:25px 22px;margin-right:20px;text-align:center}
+.profile h2{margin:0;padding:2px 0 16px;color:#2d3d2f;font-size:20px}
+.profile hr{border:0;border-top:1px solid #e8eee6}
+.profile p{margin:0;padding:13px 8px;border-radius:7px;color:#5e695e;font-size:13px;text-align:left}
+.profile p:hover{background:#f3f8f0;color:#3e7047}
+.Content{width:calc(100% - 276px);min-height:420px;padding:24px}
+.Content h2{display:inline-block;margin:0;color:#29392c;font-size:19px;letter-spacing:-.4px}
+.Content>button.login_button{margin:0 0 0 8px;padding:7px 13px;border:1px solid #dce7dc;border-radius:99px;background:#fff;color:#667267;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.Content>button.login_button:first-of-type{margin-left:20px;background:#639b6d;border-color:#639b6d;color:white}
+.Content hr{margin:18px 0;border:0;border-top:1px solid #e9eee7}
+.Content>p{color:#7b847b;font-size:12px}
+.Content>p b{color:#3f7048}
+.Post{margin-top:14px;padding:17px 19px;border:1px solid #e5eee1;border-radius:10px;background:#fbfcfa}
+.Post h2{font-size:15px}.Post p{margin:8px 0 0;color:#788177;font-size:12px;line-height:1.6}
+.Status{margin-left:8px;padding:4px 9px;border-radius:99px;background:#edf5e9;color:#47734b;font-size:10px;font-weight:600;vertical-align:middle}
+@media(max-width:760px){.main{margin-top:22px;padding:0 16px}.profile{width:100%;min-height:auto;margin:0 0 14px;padding:18px}.profile p{display:inline-block;margin:4px;padding:8px 10px}.Content{width:100%;padding:18px}.Content h2{display:block;margin-bottom:12px}.Content>button.login_button:first-of-type{margin-left:0}}
+@media(max-width:520px){header{min-height:60px;padding:12px 14px}.Logo{font-size:19px}.Write{font-size:12px}.main>h1{font-size:23px}.Content{padding:15px}.Content>button.login_button{margin:0 4px 0 0!important;padding:7px 10px!important}.Post{padding:14px}.Post h2{font-size:14px}}
