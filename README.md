@@ -12,7 +12,7 @@
 메인·회원가입·로그인·글쓰기·상세·마이페이지와 관리자 신고 조회/삭제 화면이 서버에 연결되어 있습니다.
 
 회원가입에서 실제 인증 메일을 받으려면 `backend/.env.example`을 참고해
-`backend/.env`에 SMTP 서버 주소·포트·발신 주소와, 필요한 경우 발신 계정 정보를 설정하세요.
+`backend/.env`에 Brevo API 또는 SMTP 설정을 입력하세요.
 메일 설정이 없으면 인증 요청은 실패 응답을 반환합니다.
 개발 환경의 로그인 세션은 메모리에 저장되므로 서버를 재시작하면 사라집니다.
 운영 환경에서는 SQLite에 세션을 저장합니다.
@@ -25,12 +25,33 @@
 - 볼륨을 `/data`에 연결합니다. 회원/게시글 DB, 세션 DB, 업로드 사진을 이곳에 저장합니다.
 - `NODE_ENV=production`, `DATA_DIR=/data`를 설정합니다.
 - `SESSION_SECRET`, `EMAIL_VERIFICATION_SECRET`는 서로 다른 32자 이상의 임의 값으로 설정하고 재배포 때도 유지합니다.
-- SMTP 설정은 `.env.example`을 참고해 Railway Variables에 입력합니다. 개인 `.env`와 로컬 DB는 업로드하지 않습니다.
+- 이메일 설정은 `.env.example`을 참고해 Railway Variables에 입력합니다. 개인 `.env`와 로컬 DB는 업로드하지 않습니다.
 - HTTPS 도메인에서 접속합니다. 운영 세션 쿠키에는 Secure, HttpOnly, SameSite=Lax가 적용됩니다.
 
 Railway Hobby/Free/Trial은 SMTP 연결을 지원하지 않으므로 Gmail SMTP를 그대로 쓸 수 없습니다.
-이 환경에서는 이메일 HTTPS API 연동이 필요합니다. 메일 전송이 실패하면 회원가입 인증도 실패하며,
+이 환경에서는 아래 Brevo HTTPS API 설정을 사용합니다. 메일 전송이 실패하면 회원가입 인증도 실패하며,
 인증을 건너뛰지는 않습니다. [Railway 이메일 발송 안내](https://docs.railway.com/networking/outbound-networking)를 참고하세요.
+
+### Brevo 메일 설정
+
+1. Brevo 계정에서 트랜잭션 이메일 사용이 활성화되어 있는지 확인합니다.
+2. Settings > Senders, Domains, IPs > Senders에서 발신 주소를 추가하고, 해당 주소로 온 인증 코드를 확인합니다.
+3. SMTP & API > API Keys에서 **API 키**를 발급합니다. SMTP 비밀번호와는 다릅니다.
+4. Railway의 `daenbbang` 프로젝트 > `daen-web` > Variables에 다음 값을 설정하고 재배포합니다.
+
+```dotenv
+MAIL_PROVIDER=brevo
+BREVO_API_KEY=발급받은_API_키
+BREVO_FROM_EMAIL=인증한_발신_이메일
+BREVO_FROM_NAME=대N
+```
+
+실제 키는 GitHub나 채팅에 올리지 않습니다. API 키를 설정하기 전에는 실제 발송이 되지 않습니다.
+Brevo API의 접수 성공(201과 messageId)을 확인한 경우에만 발송 요청을 성공 처리합니다.
+이는 수신함 도착을 보장하는 값은 아니므로, Brevo 로그와 실제 수신 메일로 마지막 확인을 합니다.
+메일은 평문으로 보내며 API가 실패하면 인증 요청은 503을 반환하고, 삭제 안내는 기존 대기열에서 재시도합니다.
+Brevo 발신 도메인을 인증하지 않은 경우 실제 발신 주소가 Brevo 제공 주소로 대체될 수 있습니다.
+개발 환경에서 기존 Gmail SMTP를 쓰려면 `MAIL_PROVIDER=smtp`로 설정합니다(미설정 시 기본값).
 
 배포 설정은 `.railway/railway.ts`에서 관리합니다. 루트에서 `npm.cmd ci` 후 Railway CLI로
 `railway config plan`을 확인하고 `railway config apply`로 적용합니다. 볼륨 삭제나 분리 변경이
