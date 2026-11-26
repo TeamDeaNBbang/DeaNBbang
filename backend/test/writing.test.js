@@ -27,6 +27,7 @@ function seedUsers(db) {
     `);
     insert.run(1, 'author@example.test', 'author', '001', passwordHash);
     insert.run(2, 'other@example.test', 'other', '002', passwordHash);
+    insert.run(3, 'third@example.test', 'third', '003', passwordHash);
     return password;
 }
 
@@ -98,7 +99,8 @@ test('writing API requires title, content and photo on creation and supports par
         const response = await fetch(origin + '/api' + endpoint, {
             method, headers, body, signal: AbortSignal.timeout(5000)
         });
-        return { status: response.status, body: await response.json(), headers: response.headers };
+        const payload = response.status === 204 ? null : await response.json();
+        return { status: response.status, body: payload, headers: response.headers };
     }
 
     async function login(email) {
@@ -180,4 +182,31 @@ test('writing API requires title, content and photo on creation and supports par
     assert.equal(changedPhoto.status, 200);
     assert.deepEqual(changedPhoto.body, { ...expected, content, photoUrl: replacement });
     assert.deepEqual((await request('GET', '/writing')).body, [{ id, title: validFields.title, photoUrl: replacement }]);
+
+    const third = await login('third@example.test');
+    assert.equal((await request('POST', '/writing/join', { writingId: id })).status, 401);
+    assert.equal((await request('POST', '/writing/join', { writingId: '1' }, author)).status, 400);
+    assert.equal((await request('POST', '/writing/join', { writingId: 999 }, author)).body.code, 'POST_NOT_FOUND');
+    assert.equal((await request('POST', '/writing/join', { writingId: id }, author)).body.code, 'ALREADY_JOINED');
+    assert.equal((await request('POST', '/writing/leave', { writingId: id }, author)).body.code, 'OWNER_CANNOT_LEAVE');
+
+    const competing = await Promise.all([
+        request('POST', '/writing/join', { writingId: id }, other),
+        request('POST', '/writing/join', { writingId: id }, third)
+    ]);
+    assert.deepEqual(competing.map(result => result.status).sort(), [201, 409]);
+    const winner = competing[0].status === 201 ? other : third;
+    assert.deepEqual(competing.find(result => result.status === 201).body, {
+        writingId: id, participantCount: 2, joined: true
+    });
+    assert.equal(competing.find(result => result.status === 409).body.code, 'CAPACITY_EXCEEDED');
+    assert.equal((await request('POST', '/writing/join', { writingId: id }, winner)).body.code, 'ALREADY_JOINED');
+
+    assert.equal((await request('POST', '/writing/leave', { writingId: id }, winner)).status, 204);
+    assert.equal((await request('POST', '/writing/leave', { writingId: id }, winner)).status, 204);
+    assert.equal((await request('GET', endpoint)).body.participantCount, 1);
+
+    db.prepare('UPDATE writings SET recruitment_ends_at = ? WHERE id = ?').run(Date.now() - 1, id);
+    assert.equal((await request('POST', '/writing/join', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
+    assert.equal((await request('POST', '/writing/leave', { writingId: id }, other)).body.code, 'RECRUITMENT_CLOSED');
 });

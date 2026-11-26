@@ -36,8 +36,7 @@ function createWriting(db, {
         `).run(title, author_id, content, photoUrl, productName, productUrl,
             totalPrice, targetParticipantCount, recruitmentEndsAt, Date.now());
 
-        db.prepare('INSERT INTO writing_participants (writing_id, user_id) VALUES (?, ?)')
-            .run(lastInsertRowid, author_id);
+        addParticipant(db, lastInsertRowid, author_id);
         return lastInsertRowid;
     });
 }
@@ -53,4 +52,23 @@ function updateWritingFields(db, { writingId, author_id, title, content, photoUr
     `).get(title ?? null, content ?? null, photoUrl ?? null, writingId, author_id);
 }
 
-module.exports = { findAllWritings, findWritingById, createWriting, updateWritingFields };
+function hasParticipant(db, writingId, userId) {
+    return Boolean(db.prepare(`
+        SELECT 1 FROM writing_participants WHERE writing_id = ? AND user_id = ?
+    `).get(writingId, userId));
+}
+
+function addParticipant(db, writingId, userId) {
+    db.prepare('INSERT INTO writing_participants (writing_id, user_id) VALUES (?, ?)')
+        .run(writingId, userId);
+}
+
+function removeParticipant(db, writingId, userId) {
+    db.prepare('DELETE FROM writing_participants WHERE writing_id = ? AND user_id = ?')
+        .run(writingId, userId);
+}
+
+module.exports = {
+    findAllWritings, findWritingById, createWriting, updateWritingFields,
+    hasParticipant, addParticipant, removeParticipant
+};

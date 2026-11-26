@@ -1,6 +1,10 @@
 const db = require('../config/db');
 const { findById: findUserById } = require('../repositories/user.repository');
-const { findAllWritings, findWritingById, createWriting, updateWritingFields } = require('../repositories/writing.repository');
+const { runInTransaction } = require('../../db/transaction');
+const {
+    findAllWritings, findWritingById, createWriting, updateWritingFields,
+    hasParticipant, addParticipant, removeParticipant
+} = require('../repositories/writing.repository');
 
 const editableFields = {
     title: '제목을 입력해 주세요.',
@@ -106,4 +110,34 @@ function updateWriting({ writingId, author_id, body }) {
     return { writing };
 }
 
-module.exports = { getWritings, getWriting, addWriting, updateWriting };
+function isRecruitmentClosed(writing) {
+    return writing.targetParticipantCount === null ||
+        (writing.recruitmentEndsAt !== null && writing.recruitmentEndsAt <= Date.now());
+}
+
+function joinWriting(writingId, userId) {
+    return runInTransaction(db, () => {
+        const writing = getWriting(writingId);
+        if (!writing) return { code: 'POST_NOT_FOUND' };
+        if (hasParticipant(db, writingId, userId)) return { code: 'ALREADY_JOINED' };
+        if (isRecruitmentClosed(writing)) return { code: 'RECRUITMENT_CLOSED' };
+        if (writing.participantCount >= writing.targetParticipantCount) return { code: 'CAPACITY_EXCEEDED' };
+
+        addParticipant(db, writingId, userId);
+        return { writingId, participantCount: writing.participantCount + 1, joined: true };
+    });
+}
+
+function leaveWriting(writingId, userId) {
+    return runInTransaction(db, () => {
+        const writing = getWriting(writingId);
+        if (!writing) return { code: 'POST_NOT_FOUND' };
+        if (writing.author_id === userId) return { code: 'OWNER_CANNOT_LEAVE' };
+        if (isRecruitmentClosed(writing)) return { code: 'RECRUITMENT_CLOSED' };
+
+        removeParticipant(db, writingId, userId);
+        return {};
+    });
+}
+
+module.exports = { getWritings, getWriting, addWriting, updateWriting, joinWriting, leaveWriting };
