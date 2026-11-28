@@ -1,4 +1,4 @@
-import { defineRailway, project, service, volume } from "railway/iac";
+import { defineRailway, github, project, service, volume } from "railway/iac";
 // This repository manages only its own resources in the environment. Other
 // repositories export their own partial name.
 // See https://docs.railway.com/infrastructure-as-code#multi-repo-projects
@@ -9,6 +9,7 @@ export default defineRailway(() => {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
   const daenWeb = service("daen-web", {
+    source: github("TeamDeaNBbang/DeaNBbang", { branch: "main", checkSuites: true }),
     build: { buildEnvironment: "V3", builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
     healthcheck: "/api/health",
     healthcheckTimeout: 120,

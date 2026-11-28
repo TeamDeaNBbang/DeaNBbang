@@ -55,7 +55,13 @@ Brevo 발신 도메인을 인증하지 않은 경우 실제 발신 주소가 Bre
 
 배포 설정은 `.railway/railway.ts`에서 관리합니다. 루트에서 `npm.cmd ci` 후 Railway CLI로
 `railway config plan`을 확인하고 `railway config apply`로 적용합니다. 볼륨 삭제나 분리 변경이
-나오면 적용하지 마세요. 이후 루트에서 `railway up`으로 배포합니다.
+나오면 적용하지 마세요.
+
+운영 서비스 `daen-web`은 GitHub의 `TeamDeaNBbang/DeaNBbang` 저장소와 `main` 브랜치에 연결합니다.
+`main`에 변경이 합쳐지면 GitHub Actions 검사가 성공한 뒤 Railway가 자동으로 배포합니다.
+작업은 기능 브랜치 → Develop PR → main 릴리스 PR 순서로 반영합니다.
+배포 루트는 저장소 최상위이며 루트 Dockerfile로 프론트와 백엔드를 함께 빌드합니다.
+일반 배포에서는 `railway up`으로 로컬 코드를 별도 업로드할 필요가 없습니다.
 운영 DB는 새로 생성되며 개발 중 만든 로컬 계정/게시글은 자동으로 복사되지 않습니다.
 
 ## 실행하기
